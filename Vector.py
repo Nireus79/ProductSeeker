@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 # Suppress warnings for cleaner output
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
-db_directory = "D:/Vector/ProductSeeker_db"
 
 
 class ProductSeekerVectorDB:
@@ -28,10 +27,11 @@ class ProductSeekerVectorDB:
     Supports both image and text-based similarity search.
     """
 
-    def __init__(self,
-                 db_path: str = db_directory,
-                 collection_name: str = "products",
-                 model_name: str = "clip-ViT-B-32"):
+    def __init__(self, db_path, collection_name, model_name):
+        # def __init__(self,
+        #                  db_path: str = "database/chroma_data",
+        #                  collection_name: str = "products",
+        #                  model_name: str = "clip-ViT-B-32"):
         """
         Initialize ProductSeeker Vector Database
 
@@ -506,275 +506,275 @@ class ProductSeekerVectorDB:
             return False
 
 
-def main():
-    """Main function demonstrating ProductSeeker usage"""
-
-    # Initialize database
-    logger.info("Initializing ProductSeeker...")
-    db = ProductSeekerVectorDB(
-        db_path="database/product_seeker_data",
-        collection_name="products_v1"
-    )
-
-    # Load products from JSON file
-    products_file = "products.json"
-
-    if Path(products_file).exists():
-        logger.info(f"Loading products from {products_file}")
-
-        with open(products_file, 'r', encoding='utf-8') as f:
-            products = json.load(f)
-
-        # Add products to database
-        if products:
-            stats = db.add_products(products)
-            logger.info(f"Product addition completed: {stats}")
-
-        # Show database statistics
-        db_stats = db.get_database_stats()
-        logger.info(f"Database statistics: {db_stats}")
-
-        # Example searches
-        if db_stats.get('total_products', 0) > 0:
-            logger.info("\n=== Example Text Search ===")
-            text_results = db.search_by_text("laptop computer gaming", n_results=3)
-
-            if text_results.get('results'):
-                for i, result in enumerate(text_results['results'], 1):
-                    logger.info(f"{i}. {result['metadata']['title']}")
-                    logger.info(f"   Similarity: {result['similarity']:.3f} ({result['confidence']})")
-                    logger.info(f"   Price: {result['metadata']['price']}")
-                    logger.info("   ---")
-
-            # Example image search (if you have a query image)
-            query_image = "query_image.jpg"  # Replace with actual image path
-            if Path(query_image).exists():
-                logger.info("\n=== Example Image Search ===")
-                image_results = db.search_by_image(query_image, n_results=3)
-
-                if image_results.get('results'):
-                    for i, result in enumerate(image_results['results'], 1):
-                        logger.info(f"{i}. {result['metadata']['title']}")
-                        logger.info(f"   Similarity: {result['similarity']:.3f} ({result['confidence']})")
-                        logger.info(f"   Price: {result['metadata']['price']}")
-                        logger.info("   ---")
-
-    else:
-        logger.warning(f"Products file {products_file} not found. Please run the scraper first.")
-        logger.info("You can still use the database for searches if it contains data from previous runs.")
-
-
-if __name__ == "__main__":
-    main()
+# def main():
+#     """Main function demonstrating ProductSeeker usage"""
+#
+#     # Initialize database
+#     logger.info("Initializing ProductSeeker...")
+#     db = ProductSeekerVectorDB(
+#         db_path="database/product_seeker_data",
+#         collection_name="products_v1"
+#     )
+#
+#     # Load products from JSON file
+#     products_file = "products.json"
+#
+#     if Path(products_file).exists():
+#         logger.info(f"Loading products from {products_file}")
+#
+#         with open(products_file, 'r', encoding='utf-8') as f:
+#             products = json.load(f)
+#
+#         # Add products to database
+#         if products:
+#             stats = db.add_products(products)
+#             logger.info(f"Product addition completed: {stats}")
+#
+#         # Show database statistics
+#         db_stats = db.get_database_stats()
+#         logger.info(f"Database statistics: {db_stats}")
+#
+#         # Example searches
+#         if db_stats.get('total_products', 0) > 0:
+#             logger.info("\n=== Example Text Search ===")
+#             text_results = db.search_by_text("laptop computer gaming", n_results=3)
+#
+#             if text_results.get('results'):
+#                 for i, result in enumerate(text_results['results'], 1):
+#                     logger.info(f"{i}. {result['metadata']['title']}")
+#                     logger.info(f"   Similarity: {result['similarity']:.3f} ({result['confidence']})")
+#                     logger.info(f"   Price: {result['metadata']['price']}")
+#                     logger.info("   ---")
+#
+#             # Example image search (if you have a query image)
+#             query_image = "query_image.jpg"  # Replace with actual image path
+#             if Path(query_image).exists():
+#                 logger.info("\n=== Example Image Search ===")
+#                 image_results = db.search_by_image(query_image, n_results=3)
+#
+#                 if image_results.get('results'):
+#                     for i, result in enumerate(image_results['results'], 1):
+#                         logger.info(f"{i}. {result['metadata']['title']}")
+#                         logger.info(f"   Similarity: {result['similarity']:.3f} ({result['confidence']})")
+#                         logger.info(f"   Price: {result['metadata']['price']}")
+#                         logger.info("   ---")
+#
+#     else:
+#         logger.warning(f"Products file {products_file} not found. Please run the scraper first.")
+#         logger.info("You can still use the database for searches if it contains data from previous runs.")
+#
+#
+# if __name__ == "__main__":
+#     main()
 
 '''
-ProductSeeker Installation & Setup Guide
-1. System Requirements
-
-Python: 3.8 or higher
-RAM: At least 4GB (8GB recommended)
-Storage: 2-5GB free space (for models and database)
-OS: Windows, macOS, or Linux
-
-2. Installation Steps
-Step 1: Create Project Directory
-bashmkdir ProductSeeker
-cd ProductSeeker
-Step 2: Create Virtual Environment (Recommended)
-bash# Create virtual environment
-python -m venv productseeker_env
-
-# Activate it
-# Windows:
-productseeker_env\Scripts\activate
-# macOS/Linux:
-source productseeker_env/bin/activate
-Step 3: Install Required Packages
-bash# Install core dependencies
-pip install chromadb==0.4.18
-pip install sentence-transformers==2.2.2
-pip install torch torchvision torchaudio
-pip install pillow==10.1.0
-pip install tqdm==4.66.1
-pip install numpy==1.24.3
-
-# Optional: For better performance with CUDA (if you have NVIDIA GPU)
-# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-Alternative: Install from requirements.txt
-Create a requirements.txt file:
-txtchromadb==0.4.18
-sentence-transformers==2.2.2
-torch>=2.0.0
-torchvision>=0.15.0
-torchaudio>=2.0.0
-pillow==10.1.0
-tqdm==4.66.1
-numpy==1.24.3
-pathlib2>=2.3.7
-Then install:
-bashpip install -r requirements.txt
-3. Project Structure
-Create this folder structure:
-ProductSeeker/
-├── product_seeker.py          # Main vector DB script
-├── products.json              # Your scraped products (create this)
-├── database/                  # Will be created automatically
-│   └── product_seeker_data/   # ChromaDB storage
-├── images/                    # Product images (optional)
-├── query_images/              # Test images for searching
-└── requirements.txt           # Dependencies
-4. Prepare Sample Data
-Create a sample products.json file for testing:
-json[
-  {
-    "id": "1",
-    "title": "Gaming Laptop ASUS ROG",
-    "description": "High-performance gaming laptop with RTX 4060",
-    "price": "€1299.99",
-    "url": "https://example.com/laptop1",
-    "category": "Laptops",
-    "brand": "ASUS",
-    "image_path": "images/laptop1.jpg",
-    "scraped_at": "2024-01-15T10:30:00"
-  },
-  {
-    "id": "2", 
-    "title": "iPhone 15 Pro Max",
-    "description": "Latest iPhone with titanium design and A17 Pro chip",
-    "price": "€1199.00",
-    "url": "https://example.com/iphone15",
-    "category": "Smartphones",
-    "brand": "Apple",
-    "image_path": "images/iphone15.jpg",
-    "scraped_at": "2024-01-15T10:31:00"
-  }
-]
-5. First Run & Testing
-Step 1: Basic Test
-python# test_productseeker.py
-from product_seeker import ProductSeekerVectorDB
-import json
-
-# Initialize database
-db = ProductSeekerVectorDB()
-
-# Check if it works
-stats = db.get_database_stats()
-print(f"Database initialized: {stats}")
-Step 2: Load Products
-python# Load sample products
-with open('products.json', 'r', encoding='utf-8') as f:
-    products = json.load(f)
-
-# Add to database
-result = db.add_products(products)
-print(f"Added products: {result}")
-Step 3: Test Search
-python# Text search
-results = db.search_by_text("gaming laptop", n_results=5)
-print(f"Found {results['count']} results")
-
-for result in results['results']:
-    print(f"- {result['metadata']['title']}")
-    print(f"  Similarity: {result['similarity']:.3f}")
-    print(f"  Price: {result['metadata']['price']}")
-6. PyCharm Setup
-Step 1: Open Project in PyCharm
-
-Open PyCharm
-File → Open → Select your ProductSeeker folder
-PyCharm will detect it as a Python project
-
-Step 2: Configure Python Interpreter
-
-File → Settings → Project → Python Interpreter
-Click gear icon → Add
-Select "Existing environment"
-Browse to: ProductSeeker/productseeker_env/Scripts/python.exe (Windows)
-or ProductSeeker/productseeker_env/bin/python (macOS/Linux)
-
-Step 3: Install Packages in PyCharm
-
-Go to Python Interpreter settings
-Click "+" to add packages
-Search and install: chromadb, sentence-transformers, etc.
-
-7. Common Issues & Solutions
-Issue 1: CUDA/GPU Problems
-bash# If you get CUDA errors, install CPU-only version:
-pip uninstall torch torchvision torchaudio
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-Issue 2: ChromaDB Errors
-bash# If ChromaDB fails to install:
-pip install --upgrade pip setuptools wheel
-pip install chromadb --no-cache-dir
-Issue 3: Memory Issues
-python# In your code, add:
-import os
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
-# Or reduce batch size:
-db.add_products(products, batch_size=10)  # Instead of default 50
-Issue 4: Slow Model Loading
-python# The first run will be slow as it downloads the CLIP model
-# Subsequent runs will be faster as the model is cached
-8. Performance Tips
-For Better Performance:
-
-Use GPU: Install CUDA version of PyTorch if you have NVIDIA GPU
-Batch Processing: Process products in batches (default: 50)
-Image Optimization: Resize large images before processing
-SSD Storage: Store database on SSD for faster access
-
-Memory Usage:
-
-CLIP Model: ~1.5GB RAM
-Database: ~100MB per 10,000 products
-Embeddings: ~512 floats per product
-
-9. Quick Start Script
-Create quick_start.py:
-pythonfrom product_seeker import ProductSeekerVectorDB
-import json
-from pathlib import Path
-
-def main():
-    print("🚀 Starting ProductSeeker...")
-    
-    # Initialize
-    db = ProductSeekerVectorDB()
-    
-    # Load products if file exists
-    if Path("products.json").exists():
-        with open("products.json", "r", encoding="utf-8") as f:
-            products = json.load(f)
-        
-        print(f"📦 Adding {len(products)} products...")
-        stats = db.add_products(products)
-        print(f"✅ Success: {stats}")
-    
-    # Show stats
-    db_stats = db.get_database_stats()
-    print(f"📊 Database: {db_stats}")
-    
-    # Test search
-    query = input("\n🔍 Enter search query (or press Enter to skip): ")
-    if query.strip():
-        results = db.search_by_text(query, n_results=3)
-        
-        print(f"\n📋 Found {results['count']} results:")
-        for i, result in enumerate(results['results'], 1):
-            print(f"{i}. {result['metadata']['title']}")
-            print(f"   💯 Confidence: {result['confidence']}")
-            print(f"   💰 Price: {result['metadata']['price']}")
-            print()
-
-if __name__ == "__main__":
-    main()
-10. Next Steps
-
-Run the quick start script to verify everything works
-Add your real product data to products.json
-Test with different queries to see search quality
-Add product images for image-based search
-Integrate with your web scraper for automatic updates'''
+# ProductSeeker Installation & Setup Guide
+# 1. System Requirements
+# 
+# Python: 3.8 or higher
+# RAM: At least 4GB (8GB recommended)
+# Storage: 2-5GB free space (for models and database)
+# OS: Windows, macOS, or Linux
+# 
+# 2. Installation Steps
+# Step 1: Create Project Directory
+# bashmkdir ProductSeeker
+# cd ProductSeeker
+# Step 2: Create Virtual Environment (Recommended)
+# bash# Create virtual environment
+# python -m venv productseeker_env
+# 
+# # Activate it
+# # Windows:
+# productseeker_env\Scripts\activate
+# # macOS/Linux:
+# source productseeker_env/bin/activate
+# Step 3: Install Required Packages
+# bash# Install core dependencies
+# pip install chromadb==0.4.18
+# pip install sentence-transformers==2.2.2
+# pip install torch torchvision torchaudio
+# pip install pillow==10.1.0
+# pip install tqdm==4.66.1
+# pip install numpy==1.24.3
+# 
+# # Optional: For better performance with CUDA (if you have NVIDIA GPU)
+# # pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+# Alternative: Install from requirements.txt
+# Create a requirements.txt file:
+# txtchromadb==0.4.18
+# sentence-transformers==2.2.2
+# torch>=2.0.0
+# torchvision>=0.15.0
+# torchaudio>=2.0.0
+# pillow==10.1.0
+# tqdm==4.66.1
+# numpy==1.24.3
+# pathlib2>=2.3.7
+# Then install:
+# bashpip install -r requirements.txt
+# 3. Project Structure
+# Create this folder structure:
+# ProductSeeker/
+# ├── product_seeker.py          # Main vector DB script
+# ├── products.json              # Your scraped products (create this)
+# ├── database/                  # Will be created automatically
+# │   └── product_seeker_data/   # ChromaDB storage
+# ├── images/                    # Product images (optional)
+# ├── query_images/              # Test images for searching
+# └── requirements.txt           # Dependencies
+# 4. Prepare Sample Data
+# Create a sample products.json file for testing:
+# json[
+#   {
+#     "id": "1",
+#     "title": "Gaming Laptop ASUS ROG",
+#     "description": "High-performance gaming laptop with RTX 4060",
+#     "price": "€1299.99",
+#     "url": "https://example.com/laptop1",
+#     "category": "Laptops",
+#     "brand": "ASUS",
+#     "image_path": "images/laptop1.jpg",
+#     "scraped_at": "2024-01-15T10:30:00"
+#   },
+#   {
+#     "id": "2", 
+#     "title": "iPhone 15 Pro Max",
+#     "description": "Latest iPhone with titanium design and A17 Pro chip",
+#     "price": "€1199.00",
+#     "url": "https://example.com/iphone15",
+#     "category": "Smartphones",
+#     "brand": "Apple",
+#     "image_path": "images/iphone15.jpg",
+#     "scraped_at": "2024-01-15T10:31:00"
+#   }
+# ]
+# 5. First Run & Testing
+# Step 1: Basic Test
+# python# test_productseeker.py
+# from product_seeker import ProductSeekerVectorDB
+# import json
+# 
+# # Initialize database
+# db = ProductSeekerVectorDB()
+# 
+# # Check if it works
+# stats = db.get_database_stats()
+# print(f"Database initialized: {stats}")
+# Step 2: Load Products
+# python# Load sample products
+# with open('products.json', 'r', encoding='utf-8') as f:
+#     products = json.load(f)
+# 
+# # Add to database
+# result = db.add_products(products)
+# print(f"Added products: {result}")
+# Step 3: Test Search
+# python# Text search
+# results = db.search_by_text("gaming laptop", n_results=5)
+# print(f"Found {results['count']} results")
+# 
+# for result in results['results']:
+#     print(f"- {result['metadata']['title']}")
+#     print(f"  Similarity: {result['similarity']:.3f}")
+#     print(f"  Price: {result['metadata']['price']}")
+# 6. PyCharm Setup
+# Step 1: Open Project in PyCharm
+# 
+# Open PyCharm
+# File → Open → Select your ProductSeeker folder
+# PyCharm will detect it as a Python project
+# 
+# Step 2: Configure Python Interpreter
+# 
+# File → Settings → Project → Python Interpreter
+# Click gear icon → Add
+# Select "Existing environment"
+# Browse to: ProductSeeker/productseeker_env/Scripts/python.exe (Windows)
+# or ProductSeeker/productseeker_env/bin/python (macOS/Linux)
+# 
+# Step 3: Install Packages in PyCharm
+# 
+# Go to Python Interpreter settings
+# Click "+" to add packages
+# Search and install: chromadb, sentence-transformers, etc.
+# 
+# 7. Common Issues & Solutions
+# Issue 1: CUDA/GPU Problems
+# bash# If you get CUDA errors, install CPU-only version:
+# pip uninstall torch torchvision torchaudio
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+# Issue 2: ChromaDB Errors
+# bash# If ChromaDB fails to install:
+# pip install --upgrade pip setuptools wheel
+# pip install chromadb --no-cache-dir
+# Issue 3: Memory Issues
+# python# In your code, add:
+# import os
+# os.environ["TOKENIZERS_PARALLELISM"] = "false"
+# 
+# # Or reduce batch size:
+# db.add_products(products, batch_size=10)  # Instead of default 50
+# Issue 4: Slow Model Loading
+# python# The first run will be slow as it downloads the CLIP model
+# # Subsequent runs will be faster as the model is cached
+# 8. Performance Tips
+# For Better Performance:
+# 
+# Use GPU: Install CUDA version of PyTorch if you have NVIDIA GPU
+# Batch Processing: Process products in batches (default: 50)
+# Image Optimization: Resize large images before processing
+# SSD Storage: Store database on SSD for faster access
+# 
+# Memory Usage:
+# 
+# CLIP Model: ~1.5GB RAM
+# Database: ~100MB per 10,000 products
+# Embeddings: ~512 floats per product
+# 
+# 9. Quick Start Script
+# Create quick_start.py:
+# pythonfrom product_seeker import ProductSeekerVectorDB
+# import json
+# from pathlib import Path
+# 
+# def main():
+#     print("🚀 Starting ProductSeeker...")
+#     
+#     # Initialize
+#     db = ProductSeekerVectorDB()
+#     
+#     # Load products if file exists
+#     if Path("products.json").exists():
+#         with open("products.json", "r", encoding="utf-8") as f:
+#             products = json.load(f)
+#         
+#         print(f"📦 Adding {len(products)} products...")
+#         stats = db.add_products(products)
+#         print(f"✅ Success: {stats}")
+#     
+#     # Show stats
+#     db_stats = db.get_database_stats()
+#     print(f"📊 Database: {db_stats}")
+#     
+#     # Test search
+#     query = input("\n🔍 Enter search query (or press Enter to skip): ")
+#     if query.strip():
+#         results = db.search_by_text(query, n_results=3)
+#         
+#         print(f"\n📋 Found {results['count']} results:")
+#         for i, result in enumerate(results['results'], 1):
+#             print(f"{i}. {result['metadata']['title']}")
+#             print(f"   💯 Confidence: {result['confidence']}")
+#             print(f"   💰 Price: {result['metadata']['price']}")
+#             print()
+# 
+# if __name__ == "__main__":
+#     main()
+# 10. Next Steps
+# 
+# Run the quick start script to verify everything works
+# Add your real product data to products.json
+# Test with different queries to see search quality
+# Add product images for image-based search
+# Integrate with your web scraper for automatic updates'''

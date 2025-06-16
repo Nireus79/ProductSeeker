@@ -1,52 +1,17 @@
-from Vector import ProductSeekerVectorDB
-import json
-from pathlib import Path
+from Integrater import IntegratedProductScraper
 
+SCRAPER_OUTPUT = "D:/Vector/ProductSeeker_db"  # Where to save scraped files
+DATABASE_PATH = "D:/Vector/ProductSeeker_data"  # Where to store vector database
+COLLECTION_NAME = "ecommerce_test"  # Database collection name
+URL = "https://webscraper.io/test-sites/e-commerce/allinone"
+MODEL_NAME = "clip-ViT-B-32"
 
-def main():
-    print("🚀 Starting ProductSeeker...")
+# Initialize integrated scraper
+scraper = IntegratedProductScraper(
+    url=URL,
+    scraper_output_dir=SCRAPER_OUTPUT,
+    db_path=DATABASE_PATH,
+    collection_name=COLLECTION_NAME,
+    model_name=MODEL_NAME
 
-    # Initialize
-    db = ProductSeekerVectorDB()
-
-    # Load products if file exists
-    if Path("products.json").exists():
-        with open("products.json", "r", encoding="utf-8") as f:
-            products = json.load(f)
-
-        print(f"📦 Adding {len(products)} products...")
-        stats = db.add_products(products)
-        print(f"✅ Success: {stats}")
-
-    # Show stats
-    db_stats = db.get_database_stats()
-    print(f"📊 Database: {db_stats}")
-
-    # Test search
-    query = input("\n🔍 Enter search query (or press Enter to skip): ")
-    if query.strip():
-        results = db.search_by_text(query, n_results=3)
-
-        print(f"\n📋 Found {results['count']} results:")
-        for i, result in enumerate(results['results'], 1):
-            print(f"{i}. {result['metadata']['title']}")
-            print(f"   💯 Confidence: {result['confidence']}")
-            print(f"   💰 Price: {result['metadata']['price']}")
-            print()
-
-
-if __name__ == "__main__":
-    main()
-
-
-# ProductSeeker/
-# ├── scraper/
-# │   ├── scrape_products.py
-# │   └── images/
-# ├── database/
-# │   ├── vector_db.py
-# │   └── chroma_db/
-# ├── bot/
-# │   ├── chatbot.py
-# │   └── ui.py
-# └── requirements.txt
+)

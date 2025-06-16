@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime
 from Scraper import EcommerceScraper
 from Vector import ProductSeekerVectorDB
+
 """
 Integrated script that combines web scraping with ProductSeeker Vector DB
 This script scrapes products and immediately adds them to the vector database
@@ -18,30 +19,25 @@ This script scrapes products and immediately adds them to the vector database
 # For demonstration - you'll need to uncomment the imports above
 logger = logging.getLogger(__name__)
 
-scrape_address = "https://webscraper.io/test-sites/e-commerce/allinone"
-db_directory = "D:/Vector/ProductSeeker_db"
-
 
 class IntegratedProductScraper:
     """
     Integrated scraper that combines web scraping with vector database storage
     """
 
-    def __init__(self,
-                 scraper_output_dir: str = "scraped_data",
-                 db_path: str = db_directory,
-                 collection_name: str = "webscraper_products"):
+    def __init__(self, url, scraper_output_dir, db_path, collection_name, model_name):
 
         # Initialize scraper
         self.scraper = EcommerceScraper(
-            base_url=scrape_address,
+            base_url=url,
             output_dir=scraper_output_dir
         )
 
         # Initialize ProductSeeker Vector DB
         self.db = ProductSeekerVectorDB(
             db_path=db_path,
-            collection_name=collection_name
+            collection_name=collection_name,
+            model_name=model_name
         )
 
         self.scraper_output_dir = Path(scraper_output_dir)
@@ -259,59 +255,60 @@ class IntegratedProductScraper:
         return stats
 
 
-def main():
-    """Main function demonstrating the integrated scraper"""
-
-    # Configure custom paths
-    SCRAPER_OUTPUT = "my_scraped_data"  # Where to save scraped files
-    DATABASE_PATH = "my_database/products"  # Where to store vector database
-    COLLECTION_NAME = "ecommerce_test"  # Database collection name
-
-    # Initialize integrated scraper
-    scraper = IntegratedProductScraper(
-        scraper_output_dir=SCRAPER_OUTPUT,
-        db_path=DATABASE_PATH,
-        collection_name=COLLECTION_NAME
-    )
-
-    # Run the complete pipeline
-    print("🚀 Starting integrated scraping and storage...")
-    results = scraper.scrape_and_store(
-        max_products_per_category=15,  # Limit products per category
-        batch_size=25,  # Batch size for DB insertion
-        save_json=True  # Save JSON backup
-    )
-
-    if results['status'] == 'completed':
-        print("\n✅ Operation completed successfully!")
-
-        # Show some example searches
-        print("\n🔍 Testing some searches...")
-
-        # Example searches
-        search_queries = [
-            "laptop gaming",
-            "phone",
-            "tablet",
-            "notebook computer"
-        ]
-
-        for query in search_queries:
-            print(f"\n--- Searching for: '{query}' ---")
-            results = scraper.search_products(query, n_results=3)
-            if results and results.get('count', 0) > 0:
-                print(f"Found {results['count']} results")
-            else:
-                print("No results found")
-
-        # Start interactive search
-        choice = input("\n🤔 Start interactive search? (y/n): ").strip().lower()
-        if choice in ['y', 'yes']:
-            scraper.interactive_search()
-
-    else:
-        print(f"❌ Operation failed: {results.get('error', 'Unknown error')}")
-
-
-if __name__ == "__main__":
-    main()
+# def main():
+#     """Main function demonstrating the integrated scraper"""
+#
+#     # Configure custom paths
+#     SCRAPER_OUTPUT = "my_scraped_data"  # Where to save scraped files
+#     DATABASE_PATH = "my_database/products"  # Where to store vector database
+#     COLLECTION_NAME = "ecommerce_test"  # Database collection name
+#     URL = "https://webscraper.io/test-sites/e-commerce/allinone"
+#     # Initialize integrated scraper
+#     scraper = IntegratedProductScraper(
+#         scraper_output_dir=SCRAPER_OUTPUT,
+#         db_path=DATABASE_PATH,
+#         collection_name=COLLECTION_NAME,
+#         url=URL
+#     )
+#
+#     # Run the complete pipeline
+#     print("🚀 Starting integrated scraping and storage...")
+#     results = scraper.scrape_and_store(
+#         max_products_per_category=15,  # Limit products per category
+#         batch_size=25,  # Batch size for DB insertion
+#         save_json=True  # Save JSON backup
+#     )
+#
+#     if results['status'] == 'completed':
+#         print("\n✅ Operation completed successfully!")
+#
+#         # Show some example searches
+#         print("\n🔍 Testing some searches...")
+#
+#         # Example searches
+#         search_queries = [
+#             "laptop gaming",
+#             "phone",
+#             "tablet",
+#             "notebook computer"
+#         ]
+#
+#         for query in search_queries:
+#             print(f"\n--- Searching for: '{query}' ---")
+#             results = scraper.search_products(query, n_results=3)
+#             if results and results.get('count', 0) > 0:
+#                 print(f"Found {results['count']} results")
+#             else:
+#                 print("No results found")
+#
+#         # Start interactive search
+#         choice = input("\n🤔 Start interactive search? (y/n): ").strip().lower()
+#         if choice in ['y', 'yes']:
+#             scraper.interactive_search()
+#
+#     else:
+#         print(f"❌ Operation failed: {results.get('error', 'Unknown error')}")
+#
+#
+# if __name__ == "__main__":
+#     main()

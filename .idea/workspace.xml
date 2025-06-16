@@ -9,6 +9,7 @@
       <change beforePath="$PROJECT_DIR$/Integrater.py" beforeDir="false" afterPath="$PROJECT_DIR$/Integrater.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Scraper.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scraper.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Vector.py" beforeDir="false" afterPath="$PROJECT_DIR$/Vector.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,7 +62,7 @@
     ]
   }
 }]]></component>
-  <component name="RunManager" selected="Python.Integrater">
+  <component name="RunManager" selected="Python.main">
     <configuration name="Integrater" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="ProductSeeker" />
       <option name="ENV_FILES" value="" />
@@ -168,7 +169,15 @@
       <option name="project" value="LOCAL" />
       <updated>1750065579324</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Integrater">
+      <option name="closed" value="true" />
+      <created>1750068303870</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1750068303870</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

@@ -14,16 +14,15 @@ import re
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-scrape_address = "https://webscraper.io/test-sites/e-commerce/allinone"
-
 
 class EcommerceScraper:
     """
     Scraper for webscraper.io test e-commerce site
     """
 
-    def __init__(self, base_url: str = scrape_address,
-                 output_dir: str = "scraped_data"):
+    def __init__(self, base_url, output_dir):
+        # def __init__(self, base_url: str = "https://webscraper.io/test-sites/e-commerce/allinone",
+        #                  output_dir: str = "scraped_data"):
         self.base_url = base_url
         self.output_dir = Path(output_dir)
         self.session = requests.Session()
@@ -337,51 +336,51 @@ class EcommerceScraper:
             return ""
 
 
-def main():
-    """Main function to run the scraper"""
-    # Initialize scraper
-    scraper = EcommerceScraper(
-        base_url="https://webscraper.io/test-sites/e-commerce/allinone",
-        output_dir="scraped_data"  # You can change this directory
-    )
-
-    # Run scraping
-    output_file = scraper.run_full_scrape(max_products_per_category=20)
-
-    if output_file:
-        logger.info(f"✅ Scraping completed successfully!")
-        logger.info(f"📁 Products saved to: {output_file}")
-        logger.info("\n🔥 Ready to use with ProductSeeker Vector DB!")
-
-        # Show example of how to use with ProductSeeker
-        print("\n" + "=" * 60)
-        print("💡 NEXT STEPS - Use with ProductSeeker:")
-        print("=" * 60)
-        print("from product_seeker import ProductSeekerVectorDB")
-        print("import json")
-        print()
-        print("# Load scraped products")
-        print(f"with open('{output_file}', 'r', encoding='utf-8') as f:")
-        print("    products = json.load(f)")
-        print()
-        print("# Initialize ProductSeeker with custom database path")
-        print("db = ProductSeekerVectorDB(")
-        print("    db_path='./my_product_database',  # Your custom path")
-        print("    collection_name='webscraper_products'")
-        print(")")
-        print()
-        print("# Add products to vector database")
-        print("stats = db.add_products(products)")
-        print("print(f'Added {stats[\"added\"]} products to database')")
-        print()
-        print("# Search products")
-        print("results = db.search_by_text('laptop gaming', n_results=5)")
-        print("for result in results['results']:")
-        print("    print(f\"- {result['metadata']['title']}\")")
-        print("=" * 60)
-    else:
-        logger.error("❌ Scraping failed!")
-
-
-if __name__ == "__main__":
-    main()
+# def main():
+#     """Main function to run the scraper"""
+#     # Initialize scraper
+#     scraper = EcommerceScraper(
+#         base_url="https://webscraper.io/test-sites/e-commerce/allinone",
+#         output_dir="scraped_data"  # You can change this directory
+#     )
+#
+#     # Run scraping
+#     output_file = scraper.run_full_scrape(max_products_per_category=20)
+#
+#     if output_file:
+#         logger.info(f"✅ Scraping completed successfully!")
+#         logger.info(f"📁 Products saved to: {output_file}")
+#         logger.info("\n🔥 Ready to use with ProductSeeker Vector DB!")
+#
+#         # Show example of how to use with ProductSeeker
+#         print("\n" + "=" * 60)
+#         print("💡 NEXT STEPS - Use with ProductSeeker:")
+#         print("=" * 60)
+#         print("from product_seeker import ProductSeekerVectorDB")
+#         print("import json")
+#         print()
+#         print("# Load scraped products")
+#         print(f"with open('{output_file}', 'r', encoding='utf-8') as f:")
+#         print("    products = json.load(f)")
+#         print()
+#         print("# Initialize ProductSeeker with custom database path")
+#         print("db = ProductSeekerVectorDB(")
+#         print("    db_path='./my_product_database',  # Your custom path")
+#         print("    collection_name='webscraper_products'")
+#         print(")")
+#         print()
+#         print("# Add products to vector database")
+#         print("stats = db.add_products(products)")
+#         print("print(f'Added {stats[\"added\"]} products to database')")
+#         print()
+#         print("# Search products")
+#         print("results = db.search_by_text('laptop gaming', n_results=5)")
+#         print("for result in results['results']:")
+#         print("    print(f\"- {result['metadata']['title']}\")")
+#         print("=" * 60)
+#     else:
+#         logger.error("❌ Scraping failed!")
+#
+#
+# if __name__ == "__main__":
+#     main()
