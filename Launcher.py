@@ -3,6 +3,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+from langgraph_db_interface import LangGraphProductSearcher
 
 """
 Complete Product Search System Launcher
@@ -95,15 +96,13 @@ def run_langgraph_system():
     logger.info("🤖 Testing LangGraph system...")
 
     try:
-        from langgraph_db_interface import LangGraphProductSearchSystem
-
         # Configuration
         DATABASE_PATH = "D:/Vector/ProductSeeker_data"
         COLLECTION_NAME = "ecommerce_test"
         MODEL_NAME = "clip-ViT-B-32"
 
         # Initialize system
-        search_system = LangGraphProductSearchSystem(
+        search_system = LangGraphProductSearcher(
             db_path=DATABASE_PATH,
             collection_name=COLLECTION_NAME,
             model_name=MODEL_NAME
