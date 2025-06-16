@@ -1,0 +1,101 @@
+[
+  {
+    "id": "home_1_1750068134",
+    "url": "https://webscraper.io/test-sites/e-commerce/allinone/product/81",
+    "category": "Home",
+    "scraped_at": "2025-06-16T13:02:14.949684",
+    "title": "Test Sites",
+    "price": "$454.62",
+    "description": "Acer Aspire ES1-572 Black, 15.6\" HD, Core i5-7200U, 4GB, 500GB, Linux",
+    "image_path": "my_scraped_data\\images\\product_home_1_1750068134.png",
+    "brand": "Unknown"
+  },
+  {
+    "id": "home_2_1750068136",
+    "url": "https://webscraper.io/test-sites/e-commerce/allinone/product/101",
+    "category": "Home",
+    "scraped_at": "2025-06-16T13:02:16.340796",
+    "title": "Test Sites",
+    "price": "$1112.91",
+    "description": "Lenovo Legion Y520-15IKBM, Black, 15.6\" FHD IPS, Core i5-7300HQ, 8 GB, 128GB SSD + 2 TB HDD, NVIDIA GeForce GTX 1060 6 GB, FreeDOS + Windows 10 Home",
+    "image_path": "my_scraped_data\\images\\product_home_2_1750068136.png",
+    "brand": "Unknown"
+  },
+  {
+    "id": "home_3_1750068137",
+    "url": "https://webscraper.io/test-sites/e-commerce/allinone/product/4",
+    "category": "Home",
+    "scraped_at": "2025-06-16T13:02:17.782522",
+    "title": "Test Sites",
+    "price": "$109.99",
+    "description": "Andoid, Jolla dualboot",
+    "image_path": "my_scraped_data\\images\\product_home_3_1750068137.png",
+    "brand": "Unknown"
+  },
+  {
+    "id": "computers_1_1750068141",
+    "url": "https://webscraper.io/test-sites/e-commerce/allinone/product/35",
+    "category": "Computers",
+    "scraped_at": "2025-06-16T13:02:21.655932",
+    "title": "Test Sites",
+    "price": "$1311.99",
+    "description": "12.5\", Core i5-4300U, 8GB, 240GB SSD, Win7 Pro 64bit",
+    "image_path": "my_scraped_data\\images\\product_computers_1_1750068141.png",
+    "brand": "Unknown"
+  },
+  {
+    "id": "computers_2_1750068143",
+    "url": "https://webscraper.io/test-sites/e-commerce/allinone/product/58",
+    "category": "Computers",
+    "scraped_at": "2025-06-16T13:02:23.123359",
+    "title": "Test Sites",
+    "price": "$1769",
+    "description": "Asus ROG Strix GL702ZC-GC209T, 17.3\" FHD IPS, Ryzen 7 1700, 16GB, 256GB SSD + 1TB HDD, Radeon RX 580 4GB, Windows 10 Home",
+    "image_path": "my_scraped_data\\images\\product_computers_2_1750068143.png",
+    "brand": "Unknown"
+  },
+  {
+    "id": "computers_3_1750068144",
+    "url": "https://webscraper.io/test-sites/e-commerce/allinone/product/17",
+    "category": "Computers",
+    "scraped_at": "2025-06-16T13:02:24.589007",
+    "title": "Test Sites",
+    "price": "$148.99",
+    "description": "Blue, 7\" IPS, Quad-Core 1.3GHz, 8GB, 3G, Android 4.2",
+    "image_path": "my_scraped_data\\images\\product_computers_3_1750068144.png",
+    "brand": "Unknown"
+  },
+  {
+    "id": "phones_1_1750068148",
+    "url": "https://webscraper.io/test-sites/e-commerce/allinone/product/4",
+    "category": "Phones",
+    "scraped_at": "2025-06-16T13:02:28.330880",
+    "title": "Test Sites",
+    "price": "$109.99",
+    "description": "Andoid, Jolla dualboot",
+    "image_path": "my_scraped_data\\images\\product_phones_1_1750068148.png",
+    "brand": "Unknown"
+  },
+  {
+    "id": "phones_2_1750068149",
+    "url": "https://webscraper.io/test-sites/e-commerce/allinone/product/3",
+    "category": "Phones",
+    "scraped_at": "2025-06-16T13:02:29.494302",
+    "title": "Test Sites",
+    "price": "$93.99",
+    "description": "5 mpx. Android 5.0",
+    "image_path": "my_scraped_data\\images\\product_phones_2_1750068149.png",
+    "brand": "Unknown"
+  },
+  {
+    "id": "phones_3_1750068150",
+    "url": "https://webscraper.io/test-sites/e-commerce/allinone/product/9",
+    "category": "Phones",
+    "scraped_at": "2025-06-16T13:02:30.890470",
+    "title": "Test Sites",
+    "price": "$899.99",
+    "description": "Black",
+    "image_path": "my_scraped_data\\images\\product_phones_3_1750068150.png",
+    "brand": "Unknown"
+  }
+]

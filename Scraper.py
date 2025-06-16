@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 scrape_address = "https://webscraper.io/test-sites/e-commerce/allinone"
 
+
 class EcommerceScraper:
     """
     Scraper for webscraper.io test e-commerce site

@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 # Suppress warnings for cleaner output
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
+db_directory = "D:/Vector/ProductSeeker_db"
 
 
 class ProductSeekerVectorDB:
@@ -28,7 +29,7 @@ class ProductSeekerVectorDB:
     """
 
     def __init__(self,
-                 db_path: str = "database/chroma_data",
+                 db_path: str = db_directory,
                  collection_name: str = "products",
                  model_name: str = "clip-ViT-B-32"):
         """

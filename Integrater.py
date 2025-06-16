@@ -18,6 +18,9 @@ This script scrapes products and immediately adds them to the vector database
 # For demonstration - you'll need to uncomment the imports above
 logger = logging.getLogger(__name__)
 
+scrape_address = "https://webscraper.io/test-sites/e-commerce/allinone"
+db_directory = "D:/Vector/ProductSeeker_db"
+
 
 class IntegratedProductScraper:
     """
@@ -26,12 +29,12 @@ class IntegratedProductScraper:
 
     def __init__(self,
                  scraper_output_dir: str = "scraped_data",
-                 db_path: str = "database/ecommerce_products",
+                 db_path: str = db_directory,
                  collection_name: str = "webscraper_products"):
 
         # Initialize scraper
         self.scraper = EcommerceScraper(
-            base_url="https://webscraper.io/test-sites/e-commerce/allinone",
+            base_url=scrape_address,
             output_dir=scraper_output_dir
         )
 
