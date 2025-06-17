@@ -8,7 +8,7 @@ import io
 import base64
 
 from Vector import ProductSeekerVectorDB
-from langgraph_db_interface import LangGraphProductSearcher
+from LangGraphProductSearchSystem import LangGraphProductSearchSystem
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class ImageSearchBot:
         )
 
         # Initialize LangGraph system for advanced search
-        self.langgraph_system = LangGraphProductSearcher(
+        self.langgraph_system = LangGraphProductSearchSystem(
             db_path=db_path,
             collection_name=collection_name,
             model_name=model_name
@@ -339,15 +339,291 @@ class ImageSearchBot:
 
                 st.markdown("---")
 
-    # def _show_second_chance_options(self):
-    #     """Show second chance options when user is not satisfied"""
-    #     st.header("🔄 Second Chance - Let's Try Again!")
-    #
-    #     # Option 1: Different search terms
-    #     st.subheader("1. Try Different Keywords")
-    #     new_query = st.text_input(
-    #         "Try different search terms:",
-    #         placeholder="e.g., 'laptop computer', 'mobile phone', 'wireless earbuds'"
-    #     )
-    #
-    #     if st.button
+    def _show_second_chance_options(self):
+        """Show second chance options when user is not satisfied"""
+        st.header("🔄 Second Chance - Let's Try Again!")
+
+        # Option 1: Different search terms
+        st.subheader("1. Try Different Keywords")
+        new_query = st.text_input(
+            "Try different search terms:",
+            placeholder="e.g., 'laptop computer', 'mobile phone', 'wireless earbuds'"
+        )
+
+        if st.button("🔍 Search with New Terms", key="second_chance_text"):
+            if new_query:
+                with st.spinner("Searching with new terms..."):
+                    results = self.search_by_text(new_query, n_results=10)
+                    st.session_state.current_results = results.get('results', [])
+                    st.session_state.search_type = 'text_refined'
+                    st.session_state.search_query = new_query
+                    st.rerun()
+
+        # Option 2: Browse by category
+        st.subheader("2. Browse by Category")
+
+        # Get available categories from database
+        try:
+            categories = ["Electronics", "Computers", "Phones", "Tablets", "Accessories",
+                          "Gaming"]  # Default categories
+
+            selected_category = st.selectbox("Choose a category:", categories)
+
+            if st.button("📂 Browse Category", key="browse_category"):
+                with st.spinner(f"Loading {selected_category} products..."):
+                    results = self.search_by_text(selected_category, n_results=15)
+                    st.session_state.current_results = results.get('results', [])
+                    st.session_state.search_type = 'category'
+                    st.session_state.search_query = f"Category: {selected_category}"
+                    st.rerun()
+        except Exception as e:
+            st.error(f"Failed to load categories: {e}")
+
+        # Option 3: Describe what you're looking for
+        st.subheader("3. Describe What You Need")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            purpose = st.selectbox(
+                "What's it for?",
+                ["", "Work", "Gaming", "Entertainment", "Study", "Travel", "Home", "Gift"]
+            )
+
+        with col2:
+            price_range = st.selectbox(
+                "Price range?",
+                ["", "Under $100", "$100-500", "$500-1000", "Over $1000"]
+            )
+
+        additional_features = st.text_area(
+            "Any specific features or requirements?",
+            placeholder="e.g., 'needs to be portable', 'high battery life', 'good camera'"
+        )
+
+        if st.button("🎯 Find Based on Needs", key="needs_based_search"):
+            # Construct search query from needs
+            query_parts = []
+            if purpose:
+                query_parts.append(f"for {purpose.lower()}")
+            if additional_features:
+                query_parts.append(additional_features)
+
+            needs_query = " ".join(query_parts) if query_parts else "popular products"
+
+            with st.spinner("Finding products that match your needs..."):
+                results = self.langgraph_system.search(
+                    query=needs_query,
+                    search_type="text",
+                    max_results=12
+                )
+
+                # Filter by price range if specified
+                if price_range and results.get('results'):
+                    filtered_results = self._filter_by_price_range(results['results'], price_range)
+                    results['results'] = filtered_results
+
+                st.session_state.current_results = results.get('results', [])
+                st.session_state.search_type = 'needs_based'
+                st.session_state.search_query = f"Needs: {needs_query} (Price: {price_range})"
+                st.rerun()
+
+        # Option 4: Similar products to what was found
+        if st.session_state.current_results:
+            st.subheader("4. Find Similar Products")
+
+            # Let user select a product they found interesting
+            product_options = []
+            for i, result in enumerate(st.session_state.current_results[:5]):
+                metadata = result.get('metadata', {})
+                title = metadata.get('title', f'Product {i + 1}')
+                product_options.append(f"{i}: {title}")
+
+            if product_options:
+                selected_product_idx = st.selectbox(
+                    "Which product is closest to what you want?",
+                    range(len(product_options)),
+                    format_func=lambda x: product_options[x]
+                )
+
+                if st.button("🔗 Find Similar Products", key="find_similar"):
+                    selected_product = st.session_state.current_results[selected_product_idx]
+                    metadata = selected_product.get('metadata', {})
+
+                    # Create search query based on selected product
+                    category = metadata.get('category', '')
+                    brand = metadata.get('brand', '')
+
+                    similar_query = f"{category} {brand}".strip()
+                    if not similar_query:
+                        similar_query = metadata.get('title', 'similar products')
+
+                    with st.spinner("Finding similar products..."):
+                        results = self.search_by_text(similar_query, n_results=15)
+
+                        # Remove the originally selected product
+                        filtered_results = [
+                            r for r in results.get('results', [])
+                            if r.get('id') != selected_product.get('id')
+                        ]
+
+                        st.session_state.current_results = filtered_results
+                        st.session_state.search_type = 'similar'
+                        st.session_state.search_query = f"Similar to: {metadata.get('title', 'selected product')}"
+                        st.rerun()
+
+    def _filter_by_price_range(self, results: List[Dict], price_range: str) -> List[Dict]:
+        """Filter results by price range"""
+        filtered = []
+
+        for result in results:
+            metadata = result.get('metadata', {})
+            price_str = metadata.get('price', '0')
+
+            try:
+                # Extract numeric price (assuming format like "$123.45")
+                price_clean = price_str.replace('$', '').replace(',', '').strip()
+                price = float(price_clean) if price_clean else 0
+
+                if self._price_matches_range(price, price_range):
+                    filtered.append(result)
+            except (ValueError, AttributeError):
+                # If price parsing fails, include the product
+                filtered.append(result)
+
+        return filtered
+
+    def _price_matches_range(self, price: float, price_range: str) -> bool:
+        """Check if price matches the specified range"""
+        if price_range == "Under $100":
+            return price < 100
+        elif price_range == "$100-500":
+            return 100 <= price <= 500
+        elif price_range == "$500-1000":
+            return 500 <= price <= 1000
+        elif price_range == "Over $1000":
+            return price > 1000
+
+        return True  # If no specific range, include all
+
+    def run_console_interface(self):
+        """Run console-based interface for testing"""
+        print("🤖 AI Product Search Bot - Console Mode")
+        print("=" * 50)
+
+        while True:
+            print("\nOptions:")
+            print("1. Search by image")
+            print("2. Search by text")
+            print("3. Hybrid search")
+            print("4. View search history")
+            print("5. Database stats")
+            print("6. Exit")
+
+            choice = input("\nSelect option (1-6): ").strip()
+
+            if choice == "1":
+                image_path = input("Enter image path: ").strip()
+                if os.path.exists(image_path):
+                    results = self.search_by_image(image_path)
+                    self._print_console_results(results, f"Image: {image_path}")
+                else:
+                    print("❌ Image file not found")
+
+            elif choice == "2":
+                query = input("Enter search query: ").strip()
+                if query:
+                    results = self.search_by_text(query)
+                    self._print_console_results(results, f"Text: {query}")
+                else:
+                    print("❌ Please enter a search query")
+
+            elif choice == "3":
+                image_path = input("Enter image path: ").strip()
+                text_query = input("Enter text description: ").strip()
+
+                if os.path.exists(image_path) and text_query:
+                    results = self.hybrid_search(image_path, text_query)
+                    self._print_console_results(results, f"Hybrid: {image_path} + {text_query}")
+                else:
+                    print("❌ Please provide both image and text")
+
+            elif choice == "4":
+                self._print_search_history()
+
+            elif choice == "5":
+                stats = self.db.get_database_stats()
+                print(f"\n📊 Database Statistics:")
+                print(f"Total Products: {stats.get('total_products', 0)}")
+                print(f"Products with Images: {stats.get('products_with_images', 0)}")
+
+            elif choice == "6":
+                print("👋 Goodbye!")
+                break
+
+            else:
+                print("❌ Invalid option")
+
+    def _print_console_results(self, results: Dict, query: str):
+        """Print search results in console"""
+        print(f"\n🔍 Results for: {query}")
+        print("-" * 50)
+
+        if results.get('error'):
+            print(f"❌ Error: {results['error']}")
+            return
+
+        search_results = results.get('results', [])
+        if not search_results:
+            print("No products found")
+            return
+
+        for i, result in enumerate(search_results, 1):
+            metadata = result.get('metadata', {})
+            print(f"{i}. {metadata.get('title', 'Unknown Product')}")
+            print(f"   💰 Price: {metadata.get('price', 'N/A')}")
+            print(f"   📂 Category: {metadata.get('category', 'N/A')}")
+            print(f"   🏷️ Brand: {metadata.get('brand', 'N/A')}")
+            print(f"   📊 Similarity: {result.get('similarity', 0):.3f}")
+            print()
+
+    def _print_search_history(self):
+        """Print search history"""
+        print("\n📜 Search History:")
+        print("-" * 30)
+
+        if not st.session_state.search_history:
+            print("No searches performed yet")
+            return
+
+        for i, search in enumerate(st.session_state.search_history, 1):
+            print(f"{i}. {search['type'].upper()}: {search['query']}")
+            print(f"   Results: {len(search['results'])}")
+            print()
+
+
+def main():
+    """Main function to run the bot"""
+    import sys
+
+    # Configuration
+    DATABASE_PATH = "D:/Vector/ProductSeeker_data"
+    COLLECTION_NAME = "ecommerce_test"
+    MODEL_NAME = "clip-ViT-B-32"
+
+    # Initialize bot
+    bot = ImageSearchBot(
+        db_path=DATABASE_PATH,
+        collection_name=COLLECTION_NAME,
+        model_name=MODEL_NAME
+    )
+
+    # Choose interface based on command line argument
+    if len(sys.argv) > 1 and sys.argv[1] == "--console":
+        bot.run_console_interface()
+    else:
+        # Run Streamlit app
+        bot.run_streamlit_app()
+
+
+if __name__ == "__main__":
+    main()

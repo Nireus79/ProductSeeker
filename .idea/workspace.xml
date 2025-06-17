@@ -4,13 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed7bbc7b-6aa8-485b-bbca-f48586178bf3" name="Changes" comment="Integrater">
-      <change afterPath="$PROJECT_DIR$/ImageSearchBot.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Launcher.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Requirements" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/langgraph_db_interface.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="ed7bbc7b-6aa8-485b-bbca-f48586178bf3" name="Changes" comment="untested" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -193,12 +187,29 @@
       <option name="project" value="LOCAL" />
       <updated>1750083810256</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="untested">
+      <option name="closed" value="true" />
+      <created>1750102094907</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1750102094907</updated>
+    </task>
+    <task id="LOCAL-00010" summary="untested">
+      <option name="closed" value="true" />
+      <created>1750102169836</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1750102169836</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="0,0" />
     <MESSAGE value="Integrater" />
-    <option name="LAST_COMMIT_MESSAGE" value="Integrater" />
+    <MESSAGE value="untested" />
+    <option name="LAST_COMMIT_MESSAGE" value="untested" />
   </component>
 </project>
