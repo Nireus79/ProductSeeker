@@ -4,11 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed7bbc7b-6aa8-485b-bbca-f48586178bf3" name="Changes" comment="testing">
+    <list default="true" id="ed7bbc7b-6aa8-485b-bbca-f48586178bf3" name="Changes" comment="testing1">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Launcher.py" beforeDir="false" afterPath="$PROJECT_DIR$/Launcher.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scraper.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scraper.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ImageSearchBot.py" beforeDir="false" afterPath="$PROJECT_DIR$/ImageSearchBot.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,25 +44,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.ImageSearchBot.executor": "Run",
-    "Python.Integrater.executor": "Run",
-    "Python.LangGraphProductSearchSystem (1).executor": "Run",
-    "Python.Launcher.executor": "Run",
-    "Python.langgraph_db_interface.executor": "Run",
-    "Python.main.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.ImageSearchBot.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Integrater.executor&quot;: &quot;Run&quot;,
+    &quot;Python.LangGraphProductSearchSystem (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.Launcher.executor&quot;: &quot;Run&quot;,
+    &quot;Python.langgraph_db_interface.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   },
-  "keyToStringList": {
-    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
-      "Python"
+  &quot;keyToStringList&quot;: {
+    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
+      &quot;Python&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Python.Launcher">
     <configuration name="Integrater" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="ProductSeeker" />
@@ -344,7 +342,15 @@
       <option name="project" value="LOCAL" />
       <updated>1750153067102</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="testing1">
+      <option name="closed" value="true" />
+      <created>1750179590730</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1750179590730</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -352,6 +358,7 @@
     <MESSAGE value="Integrater" />
     <MESSAGE value="untested" />
     <MESSAGE value="testing" />
-    <option name="LAST_COMMIT_MESSAGE" value="testing" />
+    <MESSAGE value="testing1" />
+    <option name="LAST_COMMIT_MESSAGE" value="testing1" />
   </component>
 </project>

@@ -60,11 +60,115 @@ class ImageSearchBot:
             logger.error(f"Image search error: {e}")
             return {'error': str(e), 'results': [], 'count': 0}
 
-    def search_by_text(self, query: str) -> Dict:
-        """Search products by text with LangGraph enhancement"""
+    def _collection_text_search(self, query: str, n_results: int = 10) -> Dict:
+        """Search using the collection directly"""
         try:
-            # Use LangGraph system for enhanced text search
+            # Access the chromadb collection directly
+            collection = self.db.collection
+
+            # Query the collection
+            results = collection.query(
+                query_texts=[query],
+                n_results=n_results,
+                include=['metadatas', 'distances', 'documents']
+            )
+
+            # Format results to match expected structure
+            formatted_results = []
+            if results['ids'] and len(results['ids'][0]) > 0:
+                for i in range(len(results['ids'][0])):
+                    formatted_result = {
+                        'id': results['ids'][0][i],
+                        'similarity': 1.0 - results['distances'][0][i],  # Convert distance to similarity
+                        'metadata': results['metadatas'][0][i] if results['metadatas'] else {},
+                        'document': results['documents'][0][i] if results['documents'] else ''
+                    }
+                    formatted_results.append(formatted_result)
+
+            logger.info(f"Collection search returned {len(formatted_results)} results")
+            return {'results': formatted_results, 'count': len(formatted_results)}
+
+        except Exception as e:
+            logger.error(f"Collection text search failed: {e}")
+            return {'error': str(e), 'results': [], 'count': 0}
+
+    def _expanded_text_search(self, query: str, n_results: int = 10) -> Dict:
+        """Expanded search with query variations"""
+        try:
+            # Try different query variations
+            query_variations = [
+                query,
+                query.lower(),
+                query.replace(' ', ''),
+                f"product {query}",
+                f"{query} device",
+                f"{query} electronics"
+            ]
+
+            all_results = []
+            seen_ids = set()
+
+            for variation in query_variations:
+                try:
+                    results = self._collection_text_search(variation, n_results=5)
+                    for result in results.get('results', []):
+                        if result.get('id') not in seen_ids:
+                            all_results.append(result)
+                            seen_ids.add(result.get('id'))
+
+                    if len(all_results) >= n_results:
+                        break
+
+                except Exception as e:
+                    logger.warning(f"Query variation '{variation}' failed: {e}")
+                    continue
+
+            # Sort by similarity score
+            all_results.sort(key=lambda x: x.get('similarity', 0), reverse=True)
+
+            logger.info(f"Expanded search returned {len(all_results)} results")
+            return {'results': all_results[:n_results], 'count': len(all_results[:n_results])}
+
+        except Exception as e:
+            logger.error(f"Expanded text search failed: {e}")
+            return {'error': str(e), 'results': [], 'count': 0}
+
+    def _direct_text_search(self, query: str, n_results: int = 10) -> Dict:
+        """Direct text search using vector database"""
+        try:
+            # Check if the vector database has a direct text search method
+            if hasattr(self.db, 'search_by_text'):
+                results = self.db.search_by_text(query, n_results=n_results)
+                logger.info(f"Direct vector search returned {len(results.get('results', []))} results")
+                return results
+            else:
+                # If no direct text search, try to use the collection directly
+                logger.info("No direct text search method, attempting collection query")
+                return self._collection_text_search(query, n_results)
+
+        except Exception as e:
+            logger.error(f"Direct text search failed: {e}")
+            return {'error': str(e), 'results': [], 'count': 0}
+
+    def search_by_text(self, query: str, n_results: int = 10) -> Dict:
+        """Search products by text with fallback options"""
+        try:
+            # First, try LangGraph system
+            logger.info(f"Attempting LangGraph search for: {query}")
             results = self.langgraph_system.search(query, search_type="text")
+
+            # Check if LangGraph returned results
+            if results.get('results') and len(results['results']) > 0:
+                logger.info(f"LangGraph returned {len(results['results'])} results")
+            else:
+                logger.warning("LangGraph returned no results, trying direct vector search")
+                # Fallback to direct vector database text search
+                results = self._direct_text_search(query, n_results)
+
+            # If still no results, try expanded search
+            if not results.get('results') or len(results['results']) == 0:
+                logger.warning("No results from direct search, trying expanded search")
+                results = self._expanded_text_search(query, n_results)
 
             # Add search to history
             st.session_state.search_history.append({
@@ -75,9 +179,17 @@ class ImageSearchBot:
             })
 
             return results
+
         except Exception as e:
             logger.error(f"Text search error: {e}")
-            return {'error': str(e), 'results': [], 'count': 0}
+            # Try direct fallback on error
+            try:
+                logger.info("Attempting fallback direct search due to error")
+                results = self._direct_text_search(query, n_results)
+                return results
+            except Exception as fallback_error:
+                logger.error(f"Fallback search also failed: {fallback_error}")
+                return {'error': str(e), 'results': [], 'count': 0}
 
     def hybrid_search(self, image_path: str, text_query: str, n_results: int = 10) -> Dict:
         """Combine image and text search for better results"""
