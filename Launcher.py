@@ -101,21 +101,32 @@ def run_langgraph_system():
             collection_name=COLLECTION_NAME,
             model_name=MODEL_NAME
         )
-
         # Test searches
         test_queries = [
             "gaming laptop",
             "smartphone android",
             "wireless headphones"
         ]
-
         print("🔍 Testing LangGraph searches...")
         for query in test_queries:
             print(f"\n--- Testing: '{query}' ---")
-            result = search_system.search(query)
+
+            # Use the correct method signature - only query and search_type
+            result = search_system.search(query, search_type="auto")
 
             if result['success']:
-                print(f"✅ Found {result['count']} results")
+                results_count = len(result.get('results', []))
+                print(f"✅ Found {results_count} results")
+                print(f"🔄 Refinements made: {result.get('refinement_count', 0)}")
+
+                # Show the AI response messages
+                messages = result.get('messages', [])
+                for message in messages:
+                    if hasattr(message, 'content') and message.content:
+                        # Show first 200 characters of the response
+                        content = message.content[:200] + "..." if len(message.content) > 200 else message.content
+                        print(f"🤖 Response preview: {content}")
+                        break
             else:
                 print(f"❌ Search failed: {result.get('error')}")
 

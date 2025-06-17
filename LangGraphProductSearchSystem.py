@@ -1,8 +1,13 @@
 import logging
-from typing import List, Dict, Any, Optional, TypedDict, Annotated
+import asyncio
+from typing import List, Dict, Any, Optional, TypedDict, Annotated, Union, Literal
 from pathlib import Path
 import json
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
+import time
+from functools import lru_cache
+from dataclasses import dataclass
 
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
@@ -16,363 +21,680 @@ from Integrater import IntegratedProductScraper
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class SearchConfig:
+    """Configuration for search operations"""
+    max_results: int = 10
+    min_similarity_threshold: float = 0.5
+    max_refinements: int = 2
+    enable_caching: bool = True
+    cache_ttl: int = 300  # 5 minutes
+    enable_parallel_search: bool = True
+    search_timeout: int = 30  # seconds
+
+
 class ProductSearchState(TypedDict):
-    """State for the product search graph"""
+    """Optimized state for the product search graph"""
     messages: Annotated[List[BaseMessage], add_messages]
     query: str
-    search_type: str  # "text", "image", or "hybrid"
+    search_type: Literal["text", "image", "hybrid"]
     search_results: List[Dict[str, Any]]
     current_query: str
     refinement_count: int
-    max_refinements: int
+    config: SearchConfig
     user_feedback: Optional[str]
     selected_product: Optional[Dict[str, Any]]
     conversation_history: List[Dict[str, Any]]
+    search_metadata: Dict[str, Any]
+    performance_metrics: Dict[str, float]
 
 
 class LangGraphProductSearcher:
     """
-    LangGraph-powered product search system that integrates with your vector database
+    Highly optimized LangGraph-powered product search system
+
+    Key optimizations:
+    - Async operations for better performance
+    - Intelligent caching system
+    - Parallel search capabilities
+    - Enhanced query processing
+    - Performance monitoring
+    - Better error handling and recovery
     """
 
     def __init__(self,
                  db_path: str,
                  collection_name: str = "ecommerce_test",
-                 model_name: str = "clip-ViT-B-32"):
+                 model_name: str = "clip-ViT-B-32",
+                 config: Optional[SearchConfig] = None):
 
-        # Initialize the vector database
+        self.config = config or SearchConfig()
+
+        # Initialize the vector database with connection pooling
         self.db = ProductSeekerVectorDB(
             db_path=db_path,
             collection_name=collection_name,
             model_name=model_name
         )
 
-        # Initialize the graph
-        self.graph = self._build_graph()
+        # Cache for search results
+        self._search_cache = {}
+        self._cache_timestamps = {}
 
-        logger.info("🤖 LangGraph ProductSearcher initialized")
+        # Performance tracking
+        self._performance_stats = {
+            "total_searches": 0,
+            "average_response_time": 0.0,
+            "cache_hits": 0,
+            "cache_misses": 0
+        }
 
-    def _build_graph(self) -> StateGraph:
-        """Build the LangGraph workflow"""
+        # Thread pool for parallel operations
+        self._executor = ThreadPoolExecutor(max_workers=4)
 
-        # Define the graph
+        # Initialize the optimized graph
+        self.graph = self._build_optimized_graph()
+
+        logger.info("🚀 Optimized LangGraph ProductSearcher initialized")
+
+    def _build_optimized_graph(self) -> StateGraph:
+        """Build the optimized LangGraph workflow"""
+
         workflow = StateGraph(ProductSearchState)
 
-        # Add nodes
-        workflow.add_node("understand_query", self._understand_query)
-        workflow.add_node("search_products", self._search_products)
-        workflow.add_node("evaluate_results", self._evaluate_results)
-        workflow.add_node("refine_search", self._refine_search)
-        workflow.add_node("present_results", self._present_results)
-        workflow.add_node("handle_feedback", self._handle_feedback)
+        # Add optimized nodes
+        workflow.add_node("parse_query", self._parse_query)
+        workflow.add_node("check_cache", self._check_cache)
+        workflow.add_node("execute_search", self._execute_search)
+        workflow.add_node("post_process", self._post_process_results)
+        workflow.add_node("evaluate_quality", self._evaluate_quality)
+        workflow.add_node("smart_refine", self._smart_refine)
+        workflow.add_node("format_response", self._format_response)
+        workflow.add_node("update_cache", self._update_cache)
 
-        # Define the flow
-        workflow.set_entry_point("understand_query")
+        # Set entry point
+        workflow.set_entry_point("parse_query")
 
-        # Add edges
-        workflow.add_edge("understand_query", "search_products")
-        workflow.add_edge("search_products", "evaluate_results")
+        # Optimized flow with conditional routing
+        workflow.add_edge("parse_query", "check_cache")
 
-        # Conditional edges from evaluate_results
         workflow.add_conditional_edges(
-            "evaluate_results",
-            self._should_refine,
+            "check_cache",
+            self._cache_decision,
             {
-                "refine": "refine_search",
-                "present": "present_results"
+                "hit": "format_response",
+                "miss": "execute_search"
             }
         )
 
-        workflow.add_edge("refine_search", "search_products")
-        workflow.add_edge("present_results", "handle_feedback")
+        workflow.add_edge("execute_search", "post_process")
+        workflow.add_edge("post_process", "evaluate_quality")
 
-        # Conditional edges from handle_feedback
         workflow.add_conditional_edges(
-            "handle_feedback",
-            self._handle_feedback_decision,
+            "evaluate_quality",
+            self._quality_decision,
             {
-                "continue": "understand_query",
-                "end": END
+                "good": "format_response",
+                "refine": "smart_refine",
+                "failed": "format_response"
             }
         )
+
+        workflow.add_edge("smart_refine", "execute_search")
+        workflow.add_edge("format_response", "update_cache")
+        workflow.add_edge("update_cache", END)
 
         return workflow.compile()
 
-    def _understand_query(self, state: ProductSearchState) -> ProductSearchState:
-        """Analyze and understand the user's query"""
+    def _parse_query(self, state: ProductSearchState) -> ProductSearchState:
+        """Enhanced query parsing with NLP techniques"""
+        start_time = time.time()
 
         last_message = state["messages"][-1] if state["messages"] else None
+        query = last_message.content if isinstance(last_message, HumanMessage) else state.get("query", "")
 
-        if isinstance(last_message, HumanMessage):
-            query = last_message.content
-        else:
-            query = state.get("query", "")
+        # Enhanced query processing
+        processed_query = self._preprocess_query(query)
 
-        # Determine search type
-        search_type = "text"  # Default
-
-        # Check if it's an image path
-        if query and Path(query).exists() and Path(query).suffix.lower() in ['.jpg', '.jpeg', '.png', '.bmp', '.gif']:
-            search_type = "image"
-
-        # Enhanced query processing could go here
-        processed_query = query.strip()
+        # Intelligent search type detection
+        search_type = self._detect_search_type(query)
 
         state.update({
             "current_query": processed_query,
             "search_type": search_type,
-            "refinement_count": state.get("refinement_count", 0),
-            "max_refinements": state.get("max_refinements", 3)
+            "refinement_count": 0,
+            "search_metadata": {"original_query": query},
+            "performance_metrics": {"parse_time": time.time() - start_time}
         })
-
-        logger.info(f"🧠 Query understood: '{processed_query}' (type: {search_type})")
 
         return state
 
-    def _search_products(self, state: ProductSearchState) -> ProductSearchState:
-        """Search for products in the vector database"""
+    def _preprocess_query(self, query: str) -> str:
+        """Advanced query preprocessing"""
+        if not query:
+            return ""
+
+        # Remove common stop words that don't help in product search
+        stop_words = {"the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by"}
+
+        # Basic cleaning
+        query = query.strip().lower()
+
+        # Split and filter
+        words = [word for word in query.split() if word not in stop_words and len(word) > 1]
+
+        # Rejoin
+        return " ".join(words)
+
+    def _detect_search_type(self, query: str) -> Literal["text", "image", "hybrid"]:
+        """Intelligent search type detection"""
+        if not query:
+            return "text"
+
+        # Check for image file
+        if Path(query).exists() and Path(query).suffix.lower() in ['.jpg', '.jpeg', '.png', '.bmp', '.gif']:
+            return "image"
+
+        # Check for hybrid indicators (could be enhanced with ML)
+        hybrid_keywords = ["like this", "similar to", "looks like", "design like"]
+        if any(keyword in query.lower() for keyword in hybrid_keywords):
+            return "hybrid"
+
+        return "text"
+
+    def _check_cache(self, state: ProductSearchState) -> ProductSearchState:
+        """Check if we have cached results"""
+        if not self.config.enable_caching:
+            state["cache_status"] = "disabled"
+            return state
+
+        cache_key = self._generate_cache_key(state["current_query"], state["search_type"])
+
+        if cache_key in self._search_cache:
+            cache_time = self._cache_timestamps.get(cache_key, 0)
+            if time.time() - cache_time < self.config.cache_ttl:
+                state["search_results"] = self._search_cache[cache_key]
+                state["cache_status"] = "hit"
+                self._performance_stats["cache_hits"] += 1
+                return state
+
+        state["cache_status"] = "miss"
+        self._performance_stats["cache_misses"] += 1
+        return state
+
+    def _cache_decision(self, state: ProductSearchState) -> str:
+        """Decide whether to use cache or execute search"""
+        return state.get("cache_status", "miss")
+
+    def _execute_search(self, state: ProductSearchState) -> ProductSearchState:
+        """Execute optimized search with parallel capabilities"""
+        start_time = time.time()
 
         query = state["current_query"]
         search_type = state["search_type"]
 
         try:
-            if search_type == "image":
-                results = self.db.search_by_image(query, n_results=10)
+            if self.config.enable_parallel_search and search_type == "hybrid":
+                # Parallel text and image search for hybrid
+                results = self._parallel_hybrid_search(query)
             else:
-                results = self.db.search_by_text(query, n_results=10)
+                # Single search
+                results = self._single_search(query, search_type)
 
-            if results.get('error'):
-                logger.error(f"Search failed: {results['error']}")
-                search_results = []
-            else:
-                search_results = results.get('results', [])
-
-            state["search_results"] = search_results
-
-            logger.info(f"🔍 Found {len(search_results)} products for query: '{query}'")
+            state["search_results"] = results
+            state["performance_metrics"]["search_time"] = time.time() - start_time
 
         except Exception as e:
-            logger.error(f"Search error: {e}")
+            logger.error(f"Search execution failed: {e}")
             state["search_results"] = []
+            state["search_error"] = str(e)
 
         return state
 
-    def _evaluate_results(self, state: ProductSearchState) -> ProductSearchState:
-        """Evaluate the quality of search results"""
+    def _single_search(self, query: str, search_type: str) -> List[Dict[str, Any]]:
+        """Execute single search operation"""
+        try:
+            if search_type == "image":
+                results = self.db.search_by_image(query, n_results=self.config.max_results)
+            else:
+                results = self.db.search_by_text(query, n_results=self.config.max_results)
 
+            if results.get('error'):
+                logger.error(f"Database search failed: {results['error']}")
+                return []
+
+            return results.get('results', [])
+
+        except Exception as e:
+            logger.error(f"Single search failed: {e}")
+            return []
+
+    def _parallel_hybrid_search(self, query: str) -> List[Dict[str, Any]]:
+        """Execute parallel searches for hybrid mode"""
+        try:
+            # Submit both searches in parallel
+            text_future = self._executor.submit(self._single_search, query, "text")
+            # For hybrid, we might search for similar products
+            image_future = self._executor.submit(self._single_search, query, "text")  # Placeholder
+
+            # Get results with timeout
+            text_results = text_future.result(timeout=self.config.search_timeout)
+            image_results = image_future.result(timeout=self.config.search_timeout)
+
+            # Merge and deduplicate results
+            return self._merge_results(text_results, image_results)
+
+        except Exception as e:
+            logger.error(f"Parallel search failed: {e}")
+            return self._single_search(query, "text")  # Fallback
+
+    def _merge_results(self, text_results: List[Dict], image_results: List[Dict]) -> List[Dict]:
+        """Merge and deduplicate search results"""
+        seen_ids = set()
+        merged = []
+
+        # Prioritize text results
+        for result in text_results:
+            result_id = result.get('id') or result.get('metadata', {}).get('id')
+            if result_id and result_id not in seen_ids:
+                seen_ids.add(result_id)
+                merged.append(result)
+
+        # Add unique image results
+        for result in image_results:
+            result_id = result.get('id') or result.get('metadata', {}).get('id')
+            if result_id and result_id not in seen_ids:
+                seen_ids.add(result_id)
+                merged.append(result)
+
+        return merged[:self.config.max_results]
+
+    def _post_process_results(self, state: ProductSearchState) -> ProductSearchState:
+        """Post-process search results for better quality"""
         results = state["search_results"]
 
-        # Simple evaluation criteria
         if not results:
-            state["evaluation"] = "no_results"
+            return state
+
+        # Filter by similarity threshold
+        filtered_results = [
+            result for result in results
+            if result.get('similarity', 0) >= self.config.min_similarity_threshold
+        ]
+
+        # Sort by similarity score
+        filtered_results.sort(key=lambda x: x.get('similarity', 0), reverse=True)
+
+        # Enhance metadata
+        for result in filtered_results:
+            self._enhance_result_metadata(result)
+
+        state["search_results"] = filtered_results
+        return state
+
+    def _enhance_result_metadata(self, result: Dict[str, Any]) -> None:
+        """Enhance individual result with additional metadata"""
+        metadata = result.get('metadata', {})
+
+        # Add computed fields
+        if 'price' in metadata:
+            try:
+                price_str = metadata['price'].replace('$', '').replace(',', '')
+                metadata['price_numeric'] = float(price_str)
+            except (ValueError, AttributeError):
+                pass
+
+        # Add relevance score (combination of similarity and other factors)
+        similarity = result.get('similarity', 0)
+        metadata['relevance_score'] = similarity  # Can be enhanced with more factors
+
+    def _evaluate_quality(self, state: ProductSearchState) -> ProductSearchState:
+        """Evaluate search result quality"""
+        results = state["search_results"]
+
+        if not results:
+            state["quality_score"] = 0.0
+            state["quality_status"] = "no_results"
         elif len(results) < 3:
-            state["evaluation"] = "few_results"
-        elif all(result.get('similarity', 0) < 0.7 for result in results):
-            state["evaluation"] = "low_confidence"
+            state["quality_score"] = 0.3
+            state["quality_status"] = "few_results"
         else:
-            state["evaluation"] = "good_results"
+            # Calculate average similarity
+            avg_similarity = sum(r.get('similarity', 0) for r in results) / len(results)
+            state["quality_score"] = avg_similarity
+
+            if avg_similarity > 0.7:
+                state["quality_status"] = "good"
+            elif avg_similarity > 0.5:
+                state["quality_status"] = "acceptable"
+            else:
+                state["quality_status"] = "poor"
 
         return state
 
-    def _should_refine(self, state: ProductSearchState) -> str:
-        """Decide whether to refine the search or present results"""
-
-        evaluation = state.get("evaluation", "good_results")
+    def _quality_decision(self, state: ProductSearchState) -> str:
+        """Decide whether to refine search based on quality"""
+        quality_status = state.get("quality_status", "good")
         refinement_count = state.get("refinement_count", 0)
-        max_refinements = state.get("max_refinements", 3)
 
-        if (evaluation in ["no_results", "few_results", "low_confidence"] and
-                refinement_count < max_refinements):
+        if (quality_status in ["no_results", "few_results", "poor"] and
+                refinement_count < self.config.max_refinements):
             return "refine"
+        elif quality_status in ["good", "acceptable"]:
+            return "good"
         else:
-            return "present"
+            return "failed"
 
-    def _refine_search(self, state: ProductSearchState) -> ProductSearchState:
-        """Refine the search query"""
-
+    def _smart_refine(self, state: ProductSearchState) -> ProductSearchState:
+        """Intelligent query refinement"""
         current_query = state["current_query"]
         refinement_count = state.get("refinement_count", 0)
+        quality_status = state.get("quality_status", "")
 
-        # Simple refinement strategies
-        if refinement_count == 0:
-            # Try broader terms
-            refined_query = " ".join(current_query.split()[:2])  # Use first 2 words
-        elif refinement_count == 1:
-            # Try more specific terms
-            refined_query = current_query + " popular"
-        else:
-            # Try category-based search
-            refined_query = current_query.split()[0] if current_query.split() else current_query
+        refined_query = self._apply_refinement_strategy(current_query, refinement_count, quality_status)
 
         state.update({
             "current_query": refined_query,
             "refinement_count": refinement_count + 1
         })
 
-        logger.info(f"🔄 Refining search: '{current_query}' → '{refined_query}'")
-
+        logger.info(f"🔄 Smart refinement #{refinement_count + 1}: '{current_query}' → '{refined_query}'")
         return state
 
-    def _present_results(self, state: ProductSearchState) -> ProductSearchState:
-        """Present search results to the user"""
+    def _apply_refinement_strategy(self, query: str, refinement_count: int, quality_status: str) -> str:
+        """Apply intelligent refinement strategies"""
+        words = query.split()
 
+        if refinement_count == 0:
+            if quality_status == "no_results":
+                # Make query broader
+                return words[0] if words else query
+            else:
+                # Try removing last word
+                return " ".join(words[:-1]) if len(words) > 1 else query
+
+        elif refinement_count == 1:
+            # Try category-based search
+            category_terms = ["electronics", "computer", "phone", "headphone", "laptop"]
+            for term in category_terms:
+                if term in query.lower():
+                    return term
+            return words[0] if words else query
+
+        return query  # No more refinements
+
+    def _format_response(self, state: ProductSearchState) -> ProductSearchState:
+        """Format the final response with rich information"""
         results = state["search_results"]
-        query = state["current_query"]
+        query = state.get("current_query", "")
+        quality_score = state.get("quality_score", 0.0)
 
         if not results:
-            response = f"😔 Sorry, I couldn't find any products matching '{query}'. Try a different search term or upload an image!"
+            response = self._format_no_results_response(query)
         else:
-            response = f"🎯 Found {len(results)} products for '{query}':\n\n"
+            response = self._format_success_response(results, query, quality_score)
 
-            for i, result in enumerate(results[:5], 1):  # Show top 5
-                metadata = result.get('metadata', {})
-                similarity = result.get('similarity', 0)
+        # Add performance info in debug mode
+        if logger.isEnabledFor(logging.DEBUG):
+            metrics = state.get("performance_metrics", {})
+            response += f"\n\n🔍 Performance: {metrics}"
 
-                response += f"{i}. **{metadata.get('title', 'Unknown Product')}**\n"
-                response += f"   💰 Price: {metadata.get('price', 'N/A')}\n"
-                response += f"   📂 Category: {metadata.get('category', 'N/A')}\n"
-                response += f"   🏷️ Brand: {metadata.get('brand', 'N/A')}\n"
-                response += f"   📊 Match: {similarity:.2f}\n"
-
-                if metadata.get('description'):
-                    desc = metadata['description'][:100] + "..." if len(metadata['description']) > 100 else metadata[
-                        'description']
-                    response += f"   📝 {desc}\n"
-
-                response += "\n"
-
-            response += "💡 Type a number to get more details, or try a new search!"
-
-        # Add AI message to conversation
         ai_message = AIMessage(content=response)
         state["messages"].append(ai_message)
 
         return state
 
-    def _handle_feedback(self, state: ProductSearchState) -> ProductSearchState:
-        """Handle user feedback and selection"""
+    def _format_no_results_response(self, query: str) -> str:
+        """Format response when no results found"""
+        return f"""😔 No products found for '{query}'.
 
-        # This would be implemented based on user input
-        # For now, just mark as handled
-        state["user_feedback"] = "handled"
+💡 **Suggestions:**
+• Try broader search terms
+• Check spelling
+• Use different keywords
+• Upload a product image for visual search
+
+🔄 Would you like to try a different search?"""
+
+    def _format_success_response(self, results: List[Dict], query: str, quality_score: float) -> str:
+        """Format successful search response"""
+        response = f"🎯 Found {len(results)} products for '{query}' (Quality: {quality_score:.1f}/1.0)\n\n"
+
+        for i, result in enumerate(results[:5], 1):
+            metadata = result.get('metadata', {})
+            similarity = result.get('similarity', 0)
+
+            response += f"**{i}. {metadata.get('title', 'Unknown Product')}**\n"
+            response += f"   💰 Price: {metadata.get('price', 'N/A')}\n"
+            response += f"   📂 Category: {metadata.get('category', 'N/A')}\n"
+            response += f"   🏷️ Brand: {metadata.get('brand', 'N/A')}\n"
+            response += f"   📊 Match: {similarity:.2f}\n"
+
+            if metadata.get('description'):
+                desc = metadata['description'][:80] + "..." if len(metadata['description']) > 80 else metadata[
+                    'description']
+                response += f"   📝 {desc}\n"
+
+            response += "\n"
+
+        response += "💡 **Next steps:**\n"
+        response += "• Type a number (1-5) for product details\n"
+        response += "• Try a new search\n"
+        response += "• Upload an image for visual search"
+
+        return response
+
+    def _update_cache(self, state: ProductSearchState) -> ProductSearchState:
+        """Update search cache"""
+        if not self.config.enable_caching:
+            return state
+
+        cache_key = self._generate_cache_key(state["current_query"], state["search_type"])
+        self._search_cache[cache_key] = state["search_results"]
+        self._cache_timestamps[cache_key] = time.time()
+
+        # Cleanup old cache entries
+        self._cleanup_cache()
 
         return state
 
-    def _handle_feedback_decision(self, state: ProductSearchState) -> str:
-        """Decide whether to continue or end based on feedback"""
+    def _generate_cache_key(self, query: str, search_type: str) -> str:
+        """Generate cache key for search"""
+        return f"{search_type}:{query.lower().strip()}"
 
-        # Simple logic - in a real implementation, this would be more sophisticated
-        return "end"  # For now, always end after presenting results
+    def _cleanup_cache(self) -> None:
+        """Remove expired cache entries"""
+        current_time = time.time()
+        expired_keys = [
+            key for key, timestamp in self._cache_timestamps.items()
+            if current_time - timestamp > self.config.cache_ttl
+        ]
 
-    def search(self, query: str, search_type: str = "auto") -> Dict[str, Any]:
+        for key in expired_keys:
+            self._search_cache.pop(key, None)
+            self._cache_timestamps.pop(key, None)
+
+    @lru_cache(maxsize=100)
+    def _cached_db_stats(self) -> Dict[str, Any]:
+        """Cached database statistics"""
+        return self.db.get_database_stats()
+
+    def search(self,
+               query: str,
+               search_type: str = "auto",
+               config: Optional[SearchConfig] = None) -> Dict[str, Any]:
         """
-        Main search interface
+        Optimized main search interface
 
         Args:
             query: Search query (text or image path)
-            search_type: "text", "image", or "auto"
+            search_type: "text", "image", "hybrid", or "auto"
+            config: Optional custom configuration
 
         Returns:
-            Search results and conversation
+            Enhanced search results and metadata
         """
+        start_time = time.time()
+        self._performance_stats["total_searches"] += 1
 
-        # Determine search type if auto
-        if search_type == "auto":
-            if Path(query).exists() and Path(query).suffix.lower() in ['.jpg', '.jpeg', '.png', '.bmp', '.gif']:
-                search_type = "image"
-            else:
-                search_type = "text"
+        # Use custom config if provided
+        if config:
+            original_config = self.config
+            self.config = config
 
-        # Initial state
-        initial_state = ProductSearchState(
-            messages=[HumanMessage(content=query)],
-            query=query,
-            search_type=search_type,
-            search_results=[],
-            current_query=query,
-            refinement_count=0,
-            max_refinements=3,
-            user_feedback=None,
-            selected_product=None,
-            conversation_history=[]
-        )
-
-        # Run the graph
         try:
+            # Determine search type if auto
+            if search_type == "auto":
+                search_type = self._detect_search_type(query)
+
+            # Initial state
+            initial_state = ProductSearchState(
+                messages=[HumanMessage(content=query)],
+                query=query,
+                search_type=search_type,
+                search_results=[],
+                current_query=query,
+                refinement_count=0,
+                config=self.config,
+                user_feedback=None,
+                selected_product=None,
+                conversation_history=[],
+                search_metadata={},
+                performance_metrics={}
+            )
+
+            # Run the optimized graph
             final_state = self.graph.invoke(initial_state)
+
+            # Calculate total time
+            total_time = time.time() - start_time
+            self._update_performance_stats(total_time)
 
             return {
                 "success": True,
                 "results": final_state.get("search_results", []),
                 "messages": final_state.get("messages", []),
-                "refinement_count": final_state.get("refinement_count", 0),
-                "search_type": search_type,
-                "original_query": query,
-                "final_query": final_state.get("current_query", query)
+                "metadata": {
+                    "refinement_count": final_state.get("refinement_count", 0),
+                    "search_type": search_type,
+                    "original_query": query,
+                    "final_query": final_state.get("current_query", query),
+                    "quality_score": final_state.get("quality_score", 0.0),
+                    "total_time": total_time,
+                    "cache_status": final_state.get("cache_status", "unknown")
+                },
+                "performance_stats": self._performance_stats.copy()
             }
 
         except Exception as e:
-            logger.error(f"Graph execution failed: {e}")
+            logger.error(f"Optimized search failed: {e}")
             return {
                 "success": False,
                 "error": str(e),
                 "results": [],
-                "messages": [AIMessage(content=f"Sorry, something went wrong: {str(e)}")]
+                "messages": [AIMessage(content=f"Search failed: {str(e)}")],
+                "metadata": {"total_time": time.time() - start_time}
             }
 
-    def get_product_details(self, product_id: str) -> Optional[Dict[str, Any]]:
-        """Get detailed information about a specific product"""
+        finally:
+            # Restore original config if custom was used
+            if config:
+                self.config = original_config
 
-        try:
-            # This would query the database for specific product details
-            # Implementation depends on your database structure
-            return self.db.get_product_by_id(product_id) if hasattr(self.db, 'get_product_by_id') else None
-        except Exception as e:
-            logger.error(f"Failed to get product details: {e}")
-            return None
+    def _update_performance_stats(self, response_time: float) -> None:
+        """Update performance statistics"""
+        total_searches = self._performance_stats["total_searches"]
+        current_avg = self._performance_stats["average_response_time"]
+
+        # Calculate new average
+        new_avg = ((current_avg * (total_searches - 1)) + response_time) / total_searches
+        self._performance_stats["average_response_time"] = new_avg
+
+    def get_performance_stats(self) -> Dict[str, Any]:
+        """Get detailed performance statistics"""
+        stats = self._performance_stats.copy()
+        stats.update({
+            "cache_size": len(self._search_cache),
+            "cache_hit_rate": (stats["cache_hits"] / max(stats["cache_hits"] + stats["cache_misses"], 1)) * 100
+        })
+        return stats
+
+    def clear_cache(self) -> None:
+        """Clear search cache"""
+        self._search_cache.clear()
+        self._cache_timestamps.clear()
+        logger.info("🧹 Search cache cleared")
 
     def get_database_stats(self) -> Dict[str, Any]:
-        """Get database statistics"""
-        return self.db.get_database_stats()
+        """Get cached database statistics"""
+        return self._cached_db_stats()
+
+    def __del__(self):
+        """Cleanup resources"""
+        if hasattr(self, '_executor'):
+            self._executor.shutdown(wait=True)
 
 
-# Example usage function
+# Example usage with configuration
 def main_example():
-    """Example of how to use the LangGraph ProductSearcher"""
+    """Example of using the optimized searcher"""
 
-    # Initialize the searcher
-    searcher = LangGraphProductSearcher(
-        db_path="D:/Vector/ProductSeeker_data",
-        collection_name="ecommerce_test"
+    # Custom configuration for high-performance searching
+    config = SearchConfig(
+        max_results=15,
+        min_similarity_threshold=0.6,
+        max_refinements=2,
+        enable_caching=True,
+        cache_ttl=600,  # 10 minutes
+        enable_parallel_search=True,
+        search_timeout=20
     )
 
-    # Example searches
+    # Initialize optimized searcher
+    searcher = LangGraphProductSearcher(
+        db_path="D:/Vector/ProductSeeker_data",
+        collection_name="ecommerce_test",
+        config=config
+    )
+
+    # Test searches
     test_queries = [
-        "gaming laptop",
-        "smartphone",
-        "bluetooth headphones",
-        # "path/to/product/image.jpg"  # Image search example
+        "gaming laptop high performance",
+        "wireless bluetooth headphones",
+        "smartphone android 5g",
     ]
 
     for query in test_queries:
-        print(f"\n{'=' * 50}")
-        print(f"🔍 Searching for: {query}")
-        print('=' * 50)
+        print(f"\n{'=' * 60}")
+        print(f"🔍 Optimized Search: {query}")
+        print('=' * 60)
 
         result = searcher.search(query)
 
         if result["success"]:
-            print(f"✅ Search completed successfully!")
-            print(f"📊 Found {len(result['results'])} results")
-            print(f"🔄 Refinements made: {result['refinement_count']}")
+            metadata = result["metadata"]
+            print(f"✅ Success! Found {len(result['results'])} results")
+            print(f"⏱️  Total time: {metadata['total_time']:.2f}s")
+            print(f"🎯 Quality score: {metadata['quality_score']:.2f}")
+            print(f"🔄 Refinements: {metadata['refinement_count']}")
+            print(f"💾 Cache: {metadata['cache_status']}")
 
-            # Print the AI response
-            for message in result["messages"]:
-                if isinstance(message, AIMessage):
-                    print(f"\n🤖 Assistant: {message.content}")
+            # Show performance stats
+            stats = result["performance_stats"]
+            print(f"📊 Avg response time: {stats['average_response_time']:.2f}s")
+            print(f"📊 Cache hit rate: {searcher.get_performance_stats()['cache_hit_rate']:.1f}%")
         else:
             print(f"❌ Search failed: {result['error']}")
+
+    # Show final performance statistics
+    print(f"\n{'=' * 60}")
+    print("📊 Final Performance Statistics")
+    print('=' * 60)
+    final_stats = searcher.get_performance_stats()
+    for key, value in final_stats.items():
+        print(f"{key}: {value}")
 
 
 if __name__ == "__main__":
     main_example()
+

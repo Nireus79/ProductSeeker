@@ -6,9 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="ed7bbc7b-6aa8-485b-bbca-f48586178bf3" name="Changes" comment="untested">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ImageSearchBot.py" beforeDir="false" afterPath="$PROJECT_DIR$/ImageSearchBot.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LangGraphProductSearchSystem.py" beforeDir="false" afterPath="$PROJECT_DIR$/LangGraphProductSearchSystem.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Launcher.py" beforeDir="false" afterPath="$PROJECT_DIR$/Launcher.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/langgraph_db_interface.py" beforeDir="false" afterPath="$PROJECT_DIR$/LangGraphProductSearchSystem.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -279,7 +278,15 @@
       <option name="project" value="LOCAL" />
       <updated>1750121722332</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="untested">
+      <option name="closed" value="true" />
+      <created>1750148812558</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1750148812558</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
