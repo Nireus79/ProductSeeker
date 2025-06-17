@@ -6,6 +6,7 @@ import streamlit as st
 from PIL import Image
 import io
 import base64
+
 from Vector import ProductSeekerVectorDB
 from LangGraphProductSearchSystem import LangGraphProductSearcher
 
@@ -57,6 +58,64 @@ class ImageSearchBot:
             return results
         except Exception as e:
             logger.error(f"Image search error: {e}")
+            return {'error': str(e), 'results': [], 'count': 0}
+
+    def search_by_text(self, query: str, n_results: int = 10) -> Dict:
+        """Search products by text with fallback options"""
+        try:
+            # First, try LangGraph system
+            logger.info(f"Attempting LangGraph search for: {query}")
+            results = self.langgraph_system.search(query, search_type="text")
+
+            # Check if LangGraph returned results
+            if results.get('results') and len(results['results']) > 0:
+                logger.info(f"LangGraph returned {len(results['results'])} results")
+            else:
+                logger.warning("LangGraph returned no results, trying direct vector search")
+                # Fallback to direct vector database text search
+                results = self._direct_text_search(query, n_results)
+
+            # If still no results, try expanded search
+            if not results.get('results') or len(results['results']) == 0:
+                logger.warning("No results from direct search, trying expanded search")
+                results = self._expanded_text_search(query, n_results)
+
+            # Add search to history
+            st.session_state.search_history.append({
+                'type': 'text',
+                'query': query,
+                'results': results.get('results', []),
+                'timestamp': st.session_state.get('timestamp', 'now')
+            })
+
+            return results
+
+        except Exception as e:
+            logger.error(f"Text search error: {e}")
+            # Try direct fallback on error
+            try:
+                logger.info("Attempting fallback direct search due to error")
+                results = self._direct_text_search(query, n_results)
+                return results
+            except Exception as fallback_error:
+                logger.error(f"Fallback search also failed: {fallback_error}")
+                return {'error': str(e), 'results': [], 'count': 0}
+
+    def _direct_text_search(self, query: str, n_results: int = 10) -> Dict:
+        """Direct text search using vector database"""
+        try:
+            # Check if the vector database has a direct text search method
+            if hasattr(self.db, 'search_by_text'):
+                results = self.db.search_by_text(query, n_results=n_results)
+                logger.info(f"Direct vector search returned {len(results.get('results', []))} results")
+                return results
+            else:
+                # If no direct text search, try to use the collection directly
+                logger.info("No direct text search method, attempting collection query")
+                return self._collection_text_search(query, n_results)
+
+        except Exception as e:
+            logger.error(f"Direct text search failed: {e}")
             return {'error': str(e), 'results': [], 'count': 0}
 
     def _collection_text_search(self, query: str, n_results: int = 10) -> Dict:
@@ -132,64 +191,6 @@ class ImageSearchBot:
             logger.error(f"Expanded text search failed: {e}")
             return {'error': str(e), 'results': [], 'count': 0}
 
-    def _direct_text_search(self, query: str, n_results: int = 10) -> Dict:
-        """Direct text search using vector database"""
-        try:
-            # Check if the vector database has a direct text search method
-            if hasattr(self.db, 'search_by_text'):
-                results = self.db.search_by_text(query, n_results=n_results)
-                logger.info(f"Direct vector search returned {len(results.get('results', []))} results")
-                return results
-            else:
-                # If no direct text search, try to use the collection directly
-                logger.info("No direct text search method, attempting collection query")
-                return self._collection_text_search(query, n_results)
-
-        except Exception as e:
-            logger.error(f"Direct text search failed: {e}")
-            return {'error': str(e), 'results': [], 'count': 0}
-
-    def search_by_text(self, query: str, n_results: int = 10) -> Dict:
-        """Search products by text with fallback options"""
-        try:
-            # First, try LangGraph system
-            logger.info(f"Attempting LangGraph search for: {query}")
-            results = self.langgraph_system.search(query, search_type="text")
-
-            # Check if LangGraph returned results
-            if results.get('results') and len(results['results']) > 0:
-                logger.info(f"LangGraph returned {len(results['results'])} results")
-            else:
-                logger.warning("LangGraph returned no results, trying direct vector search")
-                # Fallback to direct vector database text search
-                results = self._direct_text_search(query, n_results)
-
-            # If still no results, try expanded search
-            if not results.get('results') or len(results['results']) == 0:
-                logger.warning("No results from direct search, trying expanded search")
-                results = self._expanded_text_search(query, n_results)
-
-            # Add search to history
-            st.session_state.search_history.append({
-                'type': 'text',
-                'query': query,
-                'results': results.get('results', []),
-                'timestamp': st.session_state.get('timestamp', 'now')
-            })
-
-            return results
-
-        except Exception as e:
-            logger.error(f"Text search error: {e}")
-            # Try direct fallback on error
-            try:
-                logger.info("Attempting fallback direct search due to error")
-                results = self._direct_text_search(query, n_results)
-                return results
-            except Exception as fallback_error:
-                logger.error(f"Fallback search also failed: {fallback_error}")
-                return {'error': str(e), 'results': [], 'count': 0}
-
     def hybrid_search(self, image_path: str, text_query: str, n_results: int = 10) -> Dict:
         """Combine image and text search for better results"""
         try:
@@ -197,7 +198,7 @@ class ImageSearchBot:
             image_results = self.search_by_image(image_path, n_results=n_results // 2)
 
             # Get text results
-            text_results = self.search_by_text(text_query)
+            text_results = self.search_by_text(text_query, n_results=n_results // 2)
 
             # Combine and rank results
             combined_results = self._combine_search_results(
@@ -255,6 +256,63 @@ class ImageSearchBot:
 
         return sorted_results
 
+    def debug_text_search(self, query: str) -> Dict:
+        """Debug method to test different text search approaches"""
+        debug_info = {
+            'query': query,
+            'methods_tested': [],
+            'results': {}
+        }
+
+        # Test 1: LangGraph system
+        try:
+            logger.info("Testing LangGraph search...")
+            langgraph_results = self.langgraph_system.search(query, search_type="text")
+            debug_info['methods_tested'].append('langgraph')
+            debug_info['results']['langgraph'] = {
+                'count': len(langgraph_results.get('results', [])),
+                'error': langgraph_results.get('error'),
+                'first_result': langgraph_results.get('results', [{}])[0] if langgraph_results.get('results') else None
+            }
+        except Exception as e:
+            debug_info['results']['langgraph'] = {'error': str(e)}
+
+        # Test 2: Direct vector search
+        try:
+            logger.info("Testing direct vector search...")
+            direct_results = self._direct_text_search(query)
+            debug_info['methods_tested'].append('direct')
+            debug_info['results']['direct'] = {
+                'count': len(direct_results.get('results', [])),
+                'error': direct_results.get('error'),
+                'first_result': direct_results.get('results', [{}])[0] if direct_results.get('results') else None
+            }
+        except Exception as e:
+            debug_info['results']['direct'] = {'error': str(e)}
+
+        # Test 3: Collection search
+        try:
+            logger.info("Testing collection search...")
+            collection_results = self._collection_text_search(query)
+            debug_info['methods_tested'].append('collection')
+            debug_info['results']['collection'] = {
+                'count': len(collection_results.get('results', [])),
+                'error': collection_results.get('error'),
+                'first_result': collection_results.get('results', [{}])[0] if collection_results.get(
+                    'results') else None
+            }
+        except Exception as e:
+            debug_info['results']['collection'] = {'error': str(e)}
+
+        # Test 4: Database stats
+        try:
+            stats = self.db.get_database_stats()
+            debug_info['database_stats'] = stats
+        except Exception as e:
+            debug_info['database_stats'] = {'error': str(e)}
+
+        return debug_info
+
     def get_product_suggestions(self, category: str, exclude_ids: List[str] = None) -> List[Dict]:
         """Get product suggestions based on category"""
         try:
@@ -293,7 +351,7 @@ class ImageSearchBot:
         st.title("🔍 AI Product Search Bot")
         st.markdown("**Upload an image or describe what you're looking for!**")
 
-        # Sidebar for settings
+        # Sidebar for settings and debugging
         with st.sidebar:
             st.header("⚙️ Settings")
             max_results = st.slider("Max Results", 3, 20, 10)
@@ -306,6 +364,13 @@ class ImageSearchBot:
                 st.metric("Products with Images", stats.get('products_with_images', 0))
             except Exception as e:
                 st.error(f"Failed to load stats: {e}")
+
+            # Debug section
+            st.header("🐛 Debug Tools")
+            debug_query = st.text_input("Debug text search:", placeholder="Enter query to debug")
+            if st.button("🔍 Debug Search") and debug_query:
+                debug_results = self.debug_text_search(debug_query)
+                st.json(debug_results)
 
         # Main search interface
         col1, col2 = st.columns([1, 1])
@@ -349,10 +414,14 @@ class ImageSearchBot:
             if st.button("🔍 Search by Text", key="text_search"):
                 if text_query:
                     with st.spinner("Searching for products..."):
-                        results = self.search_by_text(text_query)
+                        results = self.search_by_text(text_query, n_results=max_results)
                         st.session_state.current_results = results.get('results', [])
                         st.session_state.search_type = 'text'
                         st.session_state.search_query = text_query
+
+                        # Show debug info if no results
+                        if not results.get('results'):
+                            st.warning("No results found. Check debug info in sidebar.")
                 else:
                     st.warning("Please enter a search query")
 
@@ -397,6 +466,7 @@ class ImageSearchBot:
                 if st.button("🔄 Not what you're looking for? Get suggestions"):
                     self._show_second_chance_options()
 
+    # ... (rest of the methods remain the same as in the original code)
     def _display_results_grid(self, results: List[Dict]):
         """Display search results in a grid layout"""
         cols = st.columns(3)
@@ -522,10 +592,7 @@ class ImageSearchBot:
             needs_query = " ".join(query_parts) if query_parts else "popular products"
 
             with st.spinner("Finding products that match your needs..."):
-                results = self.langgraph_system.search(
-                    query=needs_query,
-                    search_type="text"
-                )
+                results = self.search_by_text(needs_query)
 
                 # Filter by price range if specified
                 if price_range and results.get('results'):
@@ -625,11 +692,12 @@ class ImageSearchBot:
             print("1. Search by image")
             print("2. Search by text")
             print("3. Hybrid search")
-            print("4. View search history")
-            print("5. Database stats")
-            print("6. Exit")
+            print("4. Debug text search")
+            print("5. View search history")
+            print("6. Database stats")
+            print("7. Exit")
 
-            choice = input("\nSelect option (1-6): ").strip()
+            choice = input("\nSelect option (1-7): ").strip()
 
             if choice == "1":
                 image_path = input("Enter image path: ").strip()
@@ -658,15 +726,31 @@ class ImageSearchBot:
                     print("❌ Please provide both image and text")
 
             elif choice == "4":
-                self._print_search_history()
+                query = input("Enter query to debug: ").strip()
+                if query:
+                    debug_results = self.debug_text_search(query)
+                    print("\n🐛 Debug Results:")
+                    print(f"Query: {debug_results['query']}")
+                    print(f"Methods tested: {debug_results['methods_tested']}")
+                    for method, result in debug_results['results'].items():
+                        print(f"\n{method.upper()}:")
+                        print(f"  Count: {result.get('count', 0)}")
+                        if result.get('error'):
+                            print(f"  Error: {result['error']}")
+                        if result.get('first_result'):
+                            print(f"  First result ID: {result['first_result'].get('id', 'N/A')}")
+                            print(f"  Similarity: {result['first_result'].get('similarity', 'N/A')}")
 
             elif choice == "5":
+                self._print_search_history()
+
+            elif choice == "6":
                 stats = self.db.get_database_stats()
                 print(f"\n📊 Database Statistics:")
                 print(f"Total Products: {stats.get('total_products', 0)}")
                 print(f"Products with Images: {stats.get('products_with_images', 0)}")
 
-            elif choice == "6":
+            elif choice == "7":
                 print("👋 Goodbye!")
                 break
 
