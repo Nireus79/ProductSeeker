@@ -64,8 +64,8 @@ class LangGraphProductSearcher:
 
     def __init__(self,
                  db_path: str,
-                 collection_name: str = "ecommerce_test",
-                 model_name: str = "clip-ViT-B-32",
+                 collection_name: str,
+                 model_name: str,
                  config: Optional[SearchConfig] = None):
 
         self.config = config or SearchConfig()
