@@ -3,7 +3,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
-from langgraph_db_interface import LangGraphProductSearcher
+from LangGraphProductSearchSystem import LangGraphProductSearcher
 
 """
 Complete Product Search System Launcher
@@ -17,6 +17,13 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+# Configuration
+SCRAPER_OUTPUT = "D:/Vector/ProductSeeker_db"
+DATABASE_PATH = "D:/Vector/ProductSeeker_data"
+COLLECTION_NAME = "ecommerce_test"
+URL = "https://webscraper.io/test-sites/e-commerce/allinone"
+MODEL_NAME = "clip-ViT-B-32"
 
 
 def setup_environment():
@@ -55,14 +62,6 @@ def run_scraper():
 
     try:
         from Integrater import IntegratedProductScraper
-
-        # Configuration
-        SCRAPER_OUTPUT = "D:/Vector/ProductSeeker_db"
-        DATABASE_PATH = "D:/Vector/ProductSeeker_data"
-        COLLECTION_NAME = "ecommerce_test"
-        URL = "https://webscraper.io/test-sites/e-commerce/allinone"
-        MODEL_NAME = "clip-ViT-B-32"
-
         # Initialize and run scraper
         scraper = IntegratedProductScraper(
             url=URL,
@@ -96,11 +95,6 @@ def run_langgraph_system():
     logger.info("🤖 Testing LangGraph system...")
 
     try:
-        # Configuration
-        DATABASE_PATH = "D:/Vector/ProductSeeker_data"
-        COLLECTION_NAME = "ecommerce_test"
-        MODEL_NAME = "clip-ViT-B-32"
-
         # Initialize system
         search_system = LangGraphProductSearcher(
             db_path=DATABASE_PATH,
@@ -118,7 +112,7 @@ def run_langgraph_system():
         print("🔍 Testing LangGraph searches...")
         for query in test_queries:
             print(f"\n--- Testing: '{query}' ---")
-            result = search_system.search(query, max_results=3)
+            result = search_system.search(query)
 
             if result['success']:
                 print(f"✅ Found {result['count']} results")
@@ -138,11 +132,6 @@ def run_image_bot(interface="streamlit"):
 
     try:
         from ImageSearchBot import ImageSearchBot
-
-        # Configuration
-        DATABASE_PATH = "D:/Vector/ProductSeeker_data"
-        COLLECTION_NAME = "ecommerce_test"
-        MODEL_NAME = "clip-ViT-B-32"
 
         # Initialize bot
         bot = ImageSearchBot(
@@ -172,10 +161,6 @@ def check_database_status():
 
     try:
         from Vector import ProductSeekerVectorDB
-
-        DATABASE_PATH = "D:/Vector/ProductSeeker_data"
-        COLLECTION_NAME = "ecommerce_test"
-        MODEL_NAME = "clip-ViT-B-32"
 
         db = ProductSeekerVectorDB(
             db_path=DATABASE_PATH,
@@ -301,4 +286,5 @@ def main():
 
 
 if __name__ == "__main__":
+    sys.argv = ['Launcher.py', 'console-bot']  # 'scrape', 'langgraph', 'bot', 'console-bot', 'status', 'full-setup'
     main()

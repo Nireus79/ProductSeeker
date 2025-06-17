@@ -8,7 +8,7 @@ import io
 import base64
 
 from Vector import ProductSeekerVectorDB
-from langgraph_db_interface import LangGraphProductSearcher
+from LangGraphProductSearchSystem import LangGraphProductSearcher
 
 logger = logging.getLogger(__name__)
 
