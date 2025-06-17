@@ -17,12 +17,10 @@ logger = logging.getLogger(__name__)
 
 class EcommerceScraper:
     """
-    Scraper for webscraper.io test e-commerce site
+    Enhanced scraper with better debugging and flexibility
     """
 
     def __init__(self, base_url, output_dir):
-        # def __init__(self, base_url: str = "https://webscraper.io/test-sites/e-commerce/allinone",
-        #                  output_dir: str = "scraped_data"):
         self.base_url = base_url
         self.output_dir = Path(output_dir)
         self.session = requests.Session()
@@ -61,6 +59,118 @@ class EcommerceScraper:
                 else:
                     logger.error(f"Failed to fetch {url} after {retries} attempts")
                     return None
+
+    def debug_page_structure(self, url: str) -> None:
+        """Debug method to inspect page structure"""
+        logger.info(f"🔍 DEBUGGING PAGE STRUCTURE: {url}")
+        soup = self.get_page(url)
+        if not soup:
+            logger.error("Could not fetch page for debugging")
+            return
+
+        # Log basic page info
+        title = soup.find('title')
+        logger.info(f"Page title: {title.get_text() if title else 'No title found'}")
+
+        # Look for common navigation elements
+        nav_elements = soup.find_all(['nav', 'ul', 'div'], class_=re.compile(r'nav|menu|category|sidebar', re.I))
+        logger.info(f"Found {len(nav_elements)} potential navigation elements")
+
+        # Look for all links
+        all_links = soup.find_all('a', href=True)
+        logger.info(f"Found {len(all_links)} total links")
+
+        # Show first 10 links for inspection
+        logger.info("First 10 links:")
+        for i, link in enumerate(all_links[:10]):
+            href = link.get('href')
+            text = link.get_text(strip=True)[:50]  # Limit text length
+            logger.info(f"  {i + 1}. {text} -> {href}")
+
+        # Look for product-like elements
+        product_elements = soup.find_all(['div', 'article', 'li'], class_=re.compile(r'product|item|card', re.I))
+        logger.info(f"Found {len(product_elements)} potential product elements")
+
+        # Look for price elements
+        price_elements = soup.find_all(string=re.compile(r'[\$€£¥]\d+|price', re.I))
+        logger.info(f"Found {len(price_elements)} potential price elements")
+
+    def find_product_links_generic(self, soup: BeautifulSoup, base_url: str = None) -> List[Dict[str, str]]:
+        """Generic method to find product links using multiple strategies"""
+        if base_url is None:
+            base_url = self.base_url
+
+        product_links = []
+
+        # Strategy 1: Look for links with product-related keywords in href
+        product_href_patterns = [
+            r'/product/',
+            r'/item/',
+            r'/p/',
+            r'product=',
+            r'item=',
+            r'/products/',
+            r'/shop/',
+            r'/buy/'
+        ]
+
+        for pattern in product_href_patterns:
+            links = soup.find_all('a', href=re.compile(pattern, re.I))
+            for link in links:
+                href = link.get('href')
+                text = link.get_text(strip=True)
+                if href and text:
+                    product_links.append({
+                        'url': urljoin(base_url, href),
+                        'title': text,
+                        'source': f'href_pattern_{pattern}'
+                    })
+
+        # Strategy 2: Look for links within product containers
+        product_containers = soup.find_all(['div', 'article', 'li'], class_=re.compile(r'product|item|card', re.I))
+        for container in product_containers:
+            links = container.find_all('a', href=True)
+            for link in links:
+                href = link.get('href')
+                text = link.get_text(strip=True)
+                if href and text:
+                    product_links.append({
+                        'url': urljoin(base_url, href),
+                        'title': text,
+                        'source': 'product_container'
+                    })
+
+        # Strategy 3: Look for links with product-related classes
+        product_link_classes = [
+            'product-link',
+            'item-link',
+            'product-title',
+            'product-name',
+            'title'
+        ]
+
+        for class_name in product_link_classes:
+            links = soup.find_all('a', class_=re.compile(class_name, re.I))
+            for link in links:
+                href = link.get('href')
+                text = link.get_text(strip=True)
+                if href and text:
+                    product_links.append({
+                        'url': urljoin(base_url, href),
+                        'title': text,
+                        'source': f'class_{class_name}'
+                    })
+
+        # Remove duplicates based on URL
+        seen_urls = set()
+        unique_links = []
+        for link in product_links:
+            if link['url'] not in seen_urls:
+                seen_urls.add(link['url'])
+                unique_links.append(link)
+
+        logger.info(f"Found {len(unique_links)} unique product links using generic strategies")
+        return unique_links
 
     def download_image(self, image_url: str, product_id: str) -> Optional[str]:
         """Download product image and return local path"""
@@ -113,82 +223,119 @@ class EcommerceScraper:
         details = {}
 
         try:
-            # Get product title
-            title_elem = soup.find('h1', class_='title') or soup.find('h1') or soup.find('title')
-            if title_elem:
-                details['title'] = title_elem.get_text(strip=True)
+            # Get product title - try multiple selectors
+            title_selectors = [
+                'h1.title',
+                'h1',
+                '.product-title',
+                '.product-name',
+                'title'
+            ]
 
-            # Get price
-            price_elem = soup.find('h4', class_='price') or soup.find('span', class_='price') or soup.find(
-                string=re.compile(r'\$\d+'))
-            if price_elem:
-                price_text = price_elem.get_text(strip=True) if hasattr(price_elem, 'get_text') else str(price_elem)
-                details['price'] = self.extract_price(price_text)
+            for selector in title_selectors:
+                title_elem = soup.select_one(selector)
+                if title_elem:
+                    details['title'] = title_elem.get_text(strip=True)
+                    break
+
+            # Get price - try multiple selectors
+            price_selectors = [
+                'h4.price',
+                '.price',
+                '.product-price',
+                '[class*="price"]'
+            ]
+
+            for selector in price_selectors:
+                price_elem = soup.select_one(selector)
+                if price_elem:
+                    details['price'] = self.extract_price(price_elem.get_text(strip=True))
+                    break
+
+            # If no price found, search for price in text
+            if 'price' not in details:
+                price_text = soup.find(string=re.compile(r'\$\d+|\€\d+|£\d+|¥\d+'))
+                if price_text:
+                    details['price'] = self.extract_price(str(price_text))
 
             # Get description
-            desc_elem = soup.find('div', class_='description') or soup.find('p', class_='description')
-            if desc_elem:
-                details['description'] = desc_elem.get_text(strip=True)
+            desc_selectors = [
+                '.description',
+                '.product-description',
+                '.product-details',
+                'p'
+            ]
+
+            for selector in desc_selectors:
+                desc_elem = soup.select_one(selector)
+                if desc_elem:
+                    desc_text = desc_elem.get_text(strip=True)
+                    if len(desc_text) > 20:  # Only use if it's substantial
+                        details['description'] = desc_text
+                        break
 
             # Get main product image
-            img_elem = soup.find('img', class_='img-responsive') or soup.find('img')
-            if img_elem and img_elem.get('src'):
-                image_url = urljoin(product_url, img_elem['src'])
-                image_path = self.download_image(image_url, product_id)
-                if image_path:
-                    details['image_path'] = image_path
+            img_selectors = [
+                'img.img-responsive',
+                '.product-image img',
+                '.main-image img',
+                'img'
+            ]
+
+            for selector in img_selectors:
+                img_elem = soup.select_one(selector)
+                if img_elem and img_elem.get('src'):
+                    image_url = urljoin(product_url, img_elem['src'])
+                    image_path = self.download_image(image_url, product_id)
+                    if image_path:
+                        details['image_path'] = image_path
+                        break
 
         except Exception as e:
             logger.warning(f"Error extracting product details from {product_url}: {e}")
 
         return details
 
-    def scrape_category_page(self, category_url: str, category_name: str) -> List[Dict[str, Any]]:
-        """Scrape all products from a category page"""
-        logger.info(f"Scraping category: {category_name} from {category_url}")
+    def scrape_page_products(self, page_url: str, page_name: str = "Unknown") -> List[Dict[str, Any]]:
+        """Scrape all products from any page using generic strategies"""
+        logger.info(f"Scraping products from: {page_name} ({page_url})")
 
-        soup = self.get_page(category_url)
+        soup = self.get_page(page_url)
         if not soup:
             return []
 
+        # Find product links using generic strategies
+        product_links = self.find_product_links_generic(soup, page_url)
+
+        if not product_links:
+            logger.warning(f"No product links found on {page_name}")
+            return []
+
+        logger.info(f"Found {len(product_links)} product links on {page_name}")
+
         products = []
-
-        # Find all product thumbnails/links
-        product_links = soup.find_all('a', class_='title') or soup.find_all('a', href=re.compile(r'/product/'))
-
-        for i, link in enumerate(product_links, 1):
+        for i, link_info in enumerate(product_links, 1):
             try:
-                # Get product URL
-                product_url = urljoin(category_url, link['href'])
-                product_id = f"{category_name.lower()}_{i}_{int(time.time())}"
+                product_url = link_info['url']
+                product_id = f"{page_name.lower().replace(' ', '_')}_{i}_{int(time.time())}"
 
-                logger.info(f"Scraping product {i}/{len(product_links)}: {link.get_text(strip=True)}")
+                logger.info(f"Scraping product {i}/{len(product_links)}: {link_info['title'][:50]}...")
 
-                # Basic product info from category page
+                # Basic product info
                 product = {
                     'id': product_id,
                     'url': product_url,
-                    'category': category_name,
-                    'scraped_at': datetime.now().isoformat()
+                    'category': page_name,
+                    'scraped_at': datetime.now().isoformat(),
+                    'title': link_info['title'],
+                    'discovery_method': link_info['source']
                 }
-
-                # Get title from link if available
-                if link.get_text(strip=True):
-                    product['title'] = link.get_text(strip=True)
-
-                # Try to get price from category page
-                parent = link.find_parent()
-                if parent:
-                    price_elem = parent.find('h4', class_='price') or parent.find_next('h4')
-                    if price_elem:
-                        product['price'] = self.extract_price(price_elem.get_text(strip=True))
 
                 # Scrape detailed product information
                 detailed_info = self.scrape_product_details(product_url, product_id)
                 product.update(detailed_info)
 
                 # Set default values if missing
-                product.setdefault('title', f'Product {i}')
                 product.setdefault('price', '0.00')
                 product.setdefault('description', '')
                 product.setdefault('brand', 'Unknown')
@@ -202,7 +349,7 @@ class EcommerceScraper:
                 logger.error(f"Error processing product {i}: {e}")
                 continue
 
-        logger.info(f"Scraped {len(products)} products from {category_name}")
+        logger.info(f"Successfully scraped {len(products)} products from {page_name}")
         return products
 
     def get_all_categories(self) -> List[Dict[str, str]]:
@@ -215,67 +362,90 @@ class EcommerceScraper:
 
         categories = []
 
-        # Look for category links in different possible structures
-        category_selectors = [
-            'a[href*="/category/"]',
-            '.nav a',
-            '.category-link',
-            'a:contains("Laptops")',
-            'a:contains("Tablets")',
-            'a:contains("Phones")'
+        # Enhanced category discovery
+        category_patterns = [
+            # Direct category links
+            ('a[href*="/category/"]', 'category_direct'),
+            ('a[href*="/categories/"]', 'categories_direct'),
+            ('a[href*="/cat/"]', 'cat_direct'),
+
+            # Navigation elements
+            ('nav a', 'nav_links'),
+            ('.nav a', 'nav_class'),
+            ('.navbar a', 'navbar'),
+            ('.navigation a', 'navigation'),
+
+            # Menu elements
+            ('.menu a', 'menu'),
+            ('.main-menu a', 'main_menu'),
+            ('.category-menu a', 'category_menu'),
+
+            # Sidebar elements
+            ('.sidebar a', 'sidebar'),
+            ('.categories a', 'categories_sidebar'),
+
+            # Product type links
+            ('a:contains("Laptop")', 'contains_laptop'),
+            ('a:contains("Tablet")', 'contains_tablet'),
+            ('a:contains("Phone")', 'contains_phone'),
+            ('a:contains("Computer")', 'contains_computer'),
+            ('a:contains("Electronics")', 'contains_electronics'),
         ]
 
         found_links = set()
 
-        for selector in category_selectors:
+        for selector, method in category_patterns:
             try:
-                links = soup.select(selector)
+                if selector.startswith('a:contains'):
+                    # Handle pseudo-selector manually
+                    keyword = selector.split('"')[1]
+                    links = soup.find_all('a', string=re.compile(keyword, re.I))
+                else:
+                    links = soup.select(selector)
+
                 for link in links:
                     href = link.get('href')
                     text = link.get_text(strip=True)
 
-                    if href and text and href not in found_links:
+                    if href and text and href not in found_links and len(text) > 0:
                         category_url = urljoin(self.base_url, href)
-                        categories.append({
-                            'name': text,
-                            'url': category_url
-                        })
-                        found_links.add(href)
-            except:
+                        # Filter out unwanted links
+                        if not any(skip in href.lower() for skip in ['javascript:', 'mailto:', '#', 'tel:']):
+                            categories.append({
+                                'name': text,
+                                'url': category_url,
+                                'discovery_method': method
+                            })
+                            found_links.add(href)
+            except Exception as e:
+                logger.debug(f"Error with selector {selector}: {e}")
                 continue
 
-        # Manual fallback for known categories if auto-discovery fails
-        if not categories:
-            manual_categories = [
-                {'name': 'Laptops', 'url': f'{self.base_url}/laptops'},
-                {'name': 'Tablets', 'url': f'{self.base_url}/tablets'},
-                {'name': 'Phones', 'url': f'{self.base_url}/phones'}
-            ]
+        logger.info(f"Found {len(categories)} potential categories")
+        for cat in categories[:10]:  # Show first 10
+            logger.info(f"  - {cat['name']} ({cat['discovery_method']})")
 
-            # Test which ones exist
-            for cat in manual_categories:
-                if self.get_page(cat['url']):
-                    categories.append(cat)
-
-        logger.info(f"Found {len(categories)} categories: {[c['name'] for c in categories]}")
         return categories
 
     def scrape_all_products(self, max_products_per_category: int = 50) -> List[Dict[str, Any]]:
         """Scrape all products from all categories"""
-        logger.info("Starting full website scrape...")
+        logger.info("Starting comprehensive product scrape...")
+
+        # First, debug the main page structure
+        self.debug_page_structure(self.base_url)
 
         all_products = []
         categories = self.get_all_categories()
 
         if not categories:
-            logger.warning("No categories found. Trying to scrape main page...")
+            logger.warning("No categories found. Trying to scrape main page directly...")
             # Try to scrape from main page
-            main_products = self.scrape_category_page(self.base_url, "Main")
+            main_products = self.scrape_page_products(self.base_url, "Main_Page")
             all_products.extend(main_products[:max_products_per_category])
         else:
             for category in categories:
                 try:
-                    products = self.scrape_category_page(category['url'], category['name'])
+                    products = self.scrape_page_products(category['url'], category['name'])
                     all_products.extend(products[:max_products_per_category])
 
                     # Add delay between categories
@@ -304,8 +474,8 @@ class EcommerceScraper:
             return ""
 
     def run_full_scrape(self, max_products_per_category: int = 50) -> str:
-        """Run complete scraping process"""
-        logger.info("🚀 Starting ProductSeeker scrape...")
+        """Run complete scraping process with enhanced debugging"""
+        logger.info("🚀 Starting Enhanced ProductSeeker scrape...")
 
         try:
             # Scrape all products
@@ -313,6 +483,7 @@ class EcommerceScraper:
 
             if not products:
                 logger.error("No products were scraped!")
+                logger.info("💡 Try running debug_page_structure() manually to inspect the website")
                 return ""
 
             # Save to JSON
@@ -325,6 +496,7 @@ class EcommerceScraper:
             logger.info(f"Total products scraped: {len(products)}")
             logger.info(f"Categories found: {len(set(p.get('category', 'Unknown') for p in products))}")
             logger.info(f"Products with images: {sum(1 for p in products if p.get('image_path'))}")
+            logger.info(f"Discovery methods used: {set(p.get('discovery_method', 'unknown') for p in products)}")
             logger.info(f"Output file: {output_file}")
             logger.info(f"Images directory: {self.images_dir}")
             logger.info("=" * 50)
@@ -336,51 +508,20 @@ class EcommerceScraper:
             return ""
 
 
-# def main():
-#     """Main function to run the scraper"""
-#     # Initialize scraper
-#     scraper = EcommerceScraper(
-#         base_url="https://webscraper.io/test-sites/e-commerce/allinone",
-#         output_dir="scraped_data"  # You can change this directory
-#     )
-#
-#     # Run scraping
-#     output_file = scraper.run_full_scrape(max_products_per_category=20)
-#
-#     if output_file:
-#         logger.info(f"✅ Scraping completed successfully!")
-#         logger.info(f"📁 Products saved to: {output_file}")
-#         logger.info("\n🔥 Ready to use with ProductSeeker Vector DB!")
-#
-#         # Show example of how to use with ProductSeeker
-#         print("\n" + "=" * 60)
-#         print("💡 NEXT STEPS - Use with ProductSeeker:")
-#         print("=" * 60)
-#         print("from product_seeker import ProductSeekerVectorDB")
-#         print("import json")
-#         print()
-#         print("# Load scraped products")
-#         print(f"with open('{output_file}', 'r', encoding='utf-8') as f:")
-#         print("    products = json.load(f)")
-#         print()
-#         print("# Initialize ProductSeeker with custom database path")
-#         print("db = ProductSeekerVectorDB(")
-#         print("    db_path='./my_product_database',  # Your custom path")
-#         print("    collection_name='webscraper_products'")
-#         print(")")
-#         print()
-#         print("# Add products to vector database")
-#         print("stats = db.add_products(products)")
-#         print("print(f'Added {stats[\"added\"]} products to database')")
-#         print()
-#         print("# Search products")
-#         print("results = db.search_by_text('laptop gaming', n_results=5)")
-#         print("for result in results['results']:")
-#         print("    print(f\"- {result['metadata']['title']}\")")
-#         print("=" * 60)
-#     else:
-#         logger.error("❌ Scraping failed!")
-#
-#
+# Example usage and testing
+def test_scraper(url: str, output_dir: str = "scraped_data"):
+    """Test the scraper with debugging"""
+    scraper = EcommerceScraper(url, output_dir)
+
+    # First, debug the page structure
+    scraper.debug_page_structure(url)
+
+    # Then try to scrape
+    output_file = scraper.run_full_scrape(max_products_per_category=10)
+
+    return output_file
+
+# Uncomment to test with your URL
 # if __name__ == "__main__":
-#     main()
+#     url = "https://your-website.com"  # Replace with your URL
+#     test_scraper(url)

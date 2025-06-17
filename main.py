@@ -3,7 +3,7 @@ from Integrater import IntegratedProductScraper
 SCRAPER_OUTPUT = "D:/Vector/ProductSeeker_db"  # Where to save scraped files
 DATABASE_PATH = "D:/Vector/ProductSeeker_data"  # Where to store vector database
 COLLECTION_NAME = "ecommerce_test"  # Database collection name
-URL = "https://webscraper.io/test-sites/e-commerce/allinone"
+URL = "https://books.toscrape.com/"
 MODEL_NAME = "clip-ViT-B-32"
 
 
@@ -41,3 +41,6 @@ def scrape_and_parse():
     else:
         print(f"❌ Operation failed: {results.get('error', 'Unknown error')}")
         print("Check the logs for more details.")
+
+
+scrape_and_parse()

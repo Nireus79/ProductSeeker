@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 SCRAPER_OUTPUT = "D:/Vector/ProductSeeker_db"
 DATABASE_PATH = "D:/Vector/ProductSeeker_data"
 COLLECTION_NAME = "ecommerce_test"
-URL = "https://webscraper.io/test-sites/e-commerce/allinone"
+URL = "https://books.toscrape.com/"
 MODEL_NAME = "clip-ViT-B-32"
 
 
