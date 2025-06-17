@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SearchConfig:
     """Configuration for search operations"""
-    max_results: int = 10
+    max_results: int = 15
     min_similarity_threshold: float = 0.5
     max_refinements: int = 2
     enable_caching: bool = True
@@ -654,7 +654,8 @@ def main_example():
     searcher = LangGraphProductSearcher(
         db_path="D:/Vector/ProductSeeker_data",
         collection_name="ecommerce_test",
-        config=config
+        config=config,
+        model_name="clip-ViT-B-32"
     )
 
     # Test searches
