@@ -8,7 +8,7 @@ import io
 import base64
 
 from Vector import ProductSeekerVectorDB
-from LangGraphProductSearchSystem import LangGraphProductSearchSystem
+from langgraph_db_interface import LangGraphProductSearcher
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class ImageSearchBot:
         )
 
         # Initialize LangGraph system for advanced search
-        self.langgraph_system = LangGraphProductSearchSystem(
+        self.langgraph_system = LangGraphProductSearcher(
             db_path=db_path,
             collection_name=collection_name,
             model_name=model_name
