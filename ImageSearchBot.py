@@ -18,7 +18,7 @@ class ImageSearchBot:
     Advanced image search bot with second chance and text assistance
     """
 
-    def __init__(self, db_path: str, collection_name: str, model_name: str = "clip-ViT-B-32"):
+    def __init__(self, db_path: str, collection_name: str, model_name: str):
         self.db = ProductSeekerVectorDB(
             db_path=db_path,
             collection_name=collection_name,
@@ -60,11 +60,11 @@ class ImageSearchBot:
             logger.error(f"Image search error: {e}")
             return {'error': str(e), 'results': [], 'count': 0}
 
-    def search_by_text(self, query: str, n_results: int = 10) -> Dict:
+    def search_by_text(self, query: str) -> Dict:
         """Search products by text with LangGraph enhancement"""
         try:
             # Use LangGraph system for enhanced text search
-            results = self.langgraph_system.search(query, search_type="text", max_results=n_results)
+            results = self.langgraph_system.search(query, search_type="text")
 
             # Add search to history
             st.session_state.search_history.append({
@@ -86,7 +86,7 @@ class ImageSearchBot:
             image_results = self.search_by_image(image_path, n_results=n_results // 2)
 
             # Get text results
-            text_results = self.search_by_text(text_query, n_results=n_results // 2)
+            text_results = self.search_by_text(text_query)
 
             # Combine and rank results
             combined_results = self._combine_search_results(
@@ -147,7 +147,7 @@ class ImageSearchBot:
     def get_product_suggestions(self, category: str, exclude_ids: List[str] = None) -> List[Dict]:
         """Get product suggestions based on category"""
         try:
-            results = self.search_by_text(f"products in {category}", n_results=20)
+            results = self.search_by_text(f"products in {category}")
             suggestions = results.get('results', [])
 
             # Filter out excluded products
@@ -238,7 +238,7 @@ class ImageSearchBot:
             if st.button("🔍 Search by Text", key="text_search"):
                 if text_query:
                     with st.spinner("Searching for products..."):
-                        results = self.search_by_text(text_query, n_results=max_results)
+                        results = self.search_by_text(text_query)
                         st.session_state.current_results = results.get('results', [])
                         st.session_state.search_type = 'text'
                         st.session_state.search_query = text_query
@@ -353,7 +353,7 @@ class ImageSearchBot:
         if st.button("🔍 Search with New Terms", key="second_chance_text"):
             if new_query:
                 with st.spinner("Searching with new terms..."):
-                    results = self.search_by_text(new_query, n_results=10)
+                    results = self.search_by_text(new_query)
                     st.session_state.current_results = results.get('results', [])
                     st.session_state.search_type = 'text_refined'
                     st.session_state.search_query = new_query
@@ -371,7 +371,7 @@ class ImageSearchBot:
 
             if st.button("📂 Browse Category", key="browse_category"):
                 with st.spinner(f"Loading {selected_category} products..."):
-                    results = self.search_by_text(selected_category, n_results=15)
+                    results = self.search_by_text(selected_category)
                     st.session_state.current_results = results.get('results', [])
                     st.session_state.search_type = 'category'
                     st.session_state.search_query = f"Category: {selected_category}"
@@ -413,8 +413,7 @@ class ImageSearchBot:
             with st.spinner("Finding products that match your needs..."):
                 results = self.langgraph_system.search(
                     query=needs_query,
-                    search_type="text",
-                    max_results=12
+                    search_type="text"
                 )
 
                 # Filter by price range if specified
@@ -458,7 +457,7 @@ class ImageSearchBot:
                         similar_query = metadata.get('title', 'similar products')
 
                     with st.spinner("Finding similar products..."):
-                        results = self.search_by_text(similar_query, n_results=15)
+                        results = self.search_by_text(similar_query)
 
                         # Remove the originally selected product
                         filtered_results = [
