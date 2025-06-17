@@ -6,7 +6,6 @@ import streamlit as st
 from PIL import Image
 import io
 import base64
-# TODO debug text search
 from Vector import ProductSeekerVectorDB
 from LangGraphProductSearchSystem import LangGraphProductSearcher
 
