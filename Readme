@@ -1,0 +1,339 @@
+# AI Product Search System
+
+A complete AI-powered product search system that combines web scraping, vector databases, LangGraph workflows, and image search capabilities.
+
+## 🚀 Features
+
+- **Web Scraping**: Automated product scraping from e-commerce sites
+- **Vector Database**: CLIP-based similarity search for products and images
+- **LangGraph Integration**: Advanced search workflows with multi-step reasoning
+- **Image Search Bot**: Upload images to find similar products
+- **Second Chance Search**: Multiple fallback options when initial search fails
+- **Hybrid Search**: Combine text and image queries for better results
+- **Interactive Web Interface**: Streamlit-based user-friendly interface
+
+## 📋 Requirements
+
+### Python Dependencies
+
+```txt
+# Core dependencies
+streamlit>=1.28.0
+langchain>=0.1.0
+langgraph>=0.0.40
+sentence-transformers>=2.2.2
+chromadb>=0.4.0
+Pillow>=9.0.0
+numpy>=1.21.0
+pandas>=1.3.0
+
+# Web scraping
+requests>=2.28.0
+beautifulsoup4>=4.11.0
+selenium>=4.0.0
+
+# Image processing
+opencv-python>=4.5.0
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Utilities
+pathlib
+logging
+json
+datetime
+typing
+pydantic>=2.0.0
+```
+
+### System Requirements
+
+- Python 3.8+
+- At least 4GB RAM (8GB recommended)
+- 2GB free disk space for models and data
+- Internet connection for initial model downloads
+
+## 🛠️ Installation
+
+1. **Clone or create the system files**:
+   ```bash
+   # Create project directory
+   mkdir ai-product-search
+   cd ai-product-search
+
+   # Copy all the provided Python files:
+   # - Integrater.py
+   # - LangGraphProductSearchSystem.py
+   # - ImageSearchBot.py
+   # - launcher.py
+   # - main.py (your original)
+   # - Vector.py (your existing file)
+   # - Scraper.py (your existing file)
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Create required directories**:
+   ```bash
+   mkdir -p D:/Vector/ProductSeeker_db
+   mkdir -p D:/Vector/ProductSeeker_data
+   ```
+
+## 🚀 Quick Start
+
+### Option 1: Complete Automated Setup
+```bash
+python launcher.py full-setup
+```
+This will:
+- Scrape products from the test e-commerce site
+- Set up the vector database
+- Test all components
+- Prepare the system for use
+
+### Option 2: Step-by-Step Setup
+
+1. **Check system status**:
+   ```bash
+   python launcher.py status
+   ```
+
+2. **Scrape products** (first time only):
+   ```bash
+   python launcher.py scrape
+   ```
+
+3. **Test LangGraph system**:
+   ```bash
+   python launcher.py langgraph
+   ```
+
+4. **Launch the image search bot**:
+   ```bash
+   # Web interface (recommended)
+   python launcher.py bot
+
+   # Console interface
+   python launcher.py console-bot
+   ```
+
+## 🔍 Usage Guide
+
+### Web Interface (Streamlit)
+
+1. **Start the web interface**:
+   ```bash
+   python launcher.py bot
+   ```
+
+2. **Open your browser** to `http://localhost:8501`
+
+3. **Search options**:
+   - **Image Search**: Upload a product image
+   - **Text Search**: Describe what you're looking for
+   - **Hybrid Search**: Combine both image and text
+
+4. **Second Chance Features**:
+   - Try different keywords
+   - Browse by category
+   - Describe your needs (purpose, price range, features)
+   - Find similar products to results you like
+
+### Console Interface
+
+```bash
+python launcher.py console-bot
+```
+
+Choose from menu options:
+1. Search by image
+2. Search by text
+3. Hybrid search
+4. View search history
+5. Database stats
+6. Exit
+
+### Direct Python Usage
+
+```python
+from ImageSearchBot import ImageSearchBot
+
+# Initialize bot
+bot = ImageSearchBot(
+    db_path="D:/Vector/ProductSeeker_data",
+    collection_name="ecommerce_test",
+    model_name="clip-ViT-B-32"
+)
+
+# Search by image
+results = bot.search_by_image("path/to/image.jpg")
+
+# Search by text
+results = bot.search_by_text("gaming laptop")
+
+# Hybrid search
+results = bot.hybrid_search("path/to/image.jpg", "red gaming laptop")
+```
+
+## 🏗️ System Architecture
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Web Scraper   │───▶│  Vector Database │◀───│  LangGraph      │
+│  (Integrater)   │    │    (ChromaDB)    │    │   System        │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                                │                        │
+                                ▼                        ▼
+                        ┌─────────────────────────────────────────┐
+                        │         Image Search Bot                │
+                        │  • Image Search                         │
+                        │  • Text Search                          │
+                        │  • Hybrid Search                        │
+                        │  • Second Chance Options                │
+                        │  • Streamlit Web Interface              │
+                        └─────────────────────────────────────────┘
+```
+
+### Components:
+
+1. **Integrater.py**: Web scraping + database population
+2. **LangGraphProductSearchSystem.py**: Advanced search workflows
+3. **ImageSearchBot.py**: Main search interface with second chances
+4. **launcher.py**: System orchestration and management
+5. **Vector.py**: Vector database operations (your existing)
+6. **Scraper.py**: Web scraping logic (your existing)
+
+## 🔧 Configuration
+
+Edit the configuration constants in each file as needed:
+
+```python
+# Common configuration
+DATABASE_PATH = "D:/Vector/ProductSeeker_data"
+COLLECTION_NAME = "ecommerce_test"
+MODEL_NAME = "clip-ViT-B-32"
+URL = "https://webscraper.io/test-sites/e-commerce/allinone"
+```
+
+## 🎯 Key Features Explained
+
+### Second Chance Search
+When initial searches don't satisfy users:
+- **Try Different Keywords**: Suggest alternative search terms
+- **Browse by Category**: Show category-based results
+- **Describe Needs**: Purpose, price range, feature-based search
+- **Find Similar**: Use existing results to find related products
+
+### Hybrid Search
+Combines image and text search:
+- Image similarity: 60% weight
+- Text similarity: 40% weight
+- Removes duplicates and re-ranks results
+
+### LangGraph Integration
+- Multi-step search workflows
+- Automatic search refinement
+- Intelligent result evaluation
+- Recommendation generation
+
+## 🚨 Troubleshooting
+
+### Common Issues:
+
+1. **"Database empty" error**:
+   ```bash
+   python launcher.py scrape
+   ```
+
+2. **Import errors**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Model download issues**:
+   - Ensure internet connection
+   - Check available disk space
+   - Try running again (models cache automatically)
+
+4. **Streamlit not opening**:
+   - Check if port 8501 is available
+   - Try: `streamlit run ImageSearchBot.py`
+
+### Performance Tips:
+
+- **First run**: Model downloads may take 5-10 minutes
+- **Memory usage**: Close other applications if running slowly
+- **Search speed**: Reduce `max_results` for faster searches
+- **Database size**: More products = better search quality
+
+## 📊 Monitoring
+
+Check system status anytime:
+```bash
+python launcher.py status
+```
+
+This shows:
+- Total products in database
+- Products with images
+- Database health status
+
+## 🔄 Updates and Maintenance
+
+To refresh the product database:
+```bash
+python launcher.py scrape
+```
+
+To test system components:
+```bash
+python launcher.py langgraph
+```
+
+If you encounter issues:
+1. Check the troubleshooting section
+2. Verify all requirements are installed
+3. Ensure database has been populated with products
+4. Check system logs for detailed error messages
+
+Notes
+Improve search relevance:
+Scoring & Ranking Improvements:
+
+Implement TF-IDF (Term Frequency-Inverse Document Frequency) scoring to prioritize documents where query terms are both frequent and distinctive
+Use BM25 algorithm, which is often more effective than basic TF-IDF for text search
+Weight different fields differently (titles might be more important than body text)
+Boost recent content if recency matters for your use case
+
+Query Processing:
+
+Add synonym expansion so searches for "car" also find "automobile" and "vehicle"
+Implement stemming to match "running" with "run" and "runs"
+Use n-gram matching for partial word matches
+Handle phrase queries differently from individual word queries
+
+Content Analysis:
+
+Extract and index key entities (people, places, concepts) from your content
+Use topic modeling to understand document themes
+Implement semantic search using embeddings (vector search) alongside keyword search
+
+Machine Learning Approaches:
+
+Track which results users click on and use this as training data
+Implement learning-to-rank algorithms that optimize based on user behavior
+Use transformer models like BERT for better understanding of query intent
+
+Multi-Signal Ranking:
+
+Combine text relevance with other signals like content popularity, author authority, or user ratings
+Use a weighted scoring system that balances multiple relevance factors
+
+Quick Wins:
+
+Ensure exact phrase matches get higher scores
+Boost results that match multiple query terms
+Penalize results that are too short or too long relative to the query
