@@ -255,61 +255,103 @@ class IntegratedProductScraper:
         return stats
 
 
-def main():
-    """Main function demonstrating the integrated scraper"""
-    # Configure custom paths
-    SCRAPER_OUTPUT = "D:/Vector/ProductSeeker_db"  # Where to save scraped files
-    DATABASE_PATH = "D:/Vector/ProductSeeker_data"  # Where to store vector database
-    COLLECTION_NAME = "ecommerce_test"  # Database collection name
-    URL = "https://webscraper.io/test-sites/e-commerce/allinone"
-    MODEL_NAME = "clip-ViT-B-32"
+SCRAPER_OUTPUT = "D:/Vector/ProductSeeker_db"  # Where to save scraped files
+DATABASE_PATH = "D:/Vector/ProductSeeker_data"  # Where to store vector database
+COLLECTION_NAME = "ecommerce_test"  # Database collection name
+URL = "https://books.toscrape.com/"
+MODEL_NAME = "clip-ViT-B-32"
+
+
+def scrape_and_parse():
     # Initialize integrated scraper
     scraper = IntegratedProductScraper(
+        url=URL,
         scraper_output_dir=SCRAPER_OUTPUT,
         db_path=DATABASE_PATH,
         collection_name=COLLECTION_NAME,
-        url=URL,
         model_name=MODEL_NAME
     )
 
-    # Run the complete pipeline
+    # THIS IS WHAT YOU WERE MISSING - Actually run the scraping!
     print("🚀 Starting integrated scraping and storage...")
     results = scraper.scrape_and_store(
-        max_products_per_category=15,  # Limit products per category
-        batch_size=25,  # Batch size for DB insertion
+        max_products_per_category=30,  # Limit products per category
+        batch_size=50,  # Batch size for DB insertion
         save_json=True  # Save JSON backup
     )
 
     if results['status'] == 'completed':
         print("\n✅ Operation completed successfully!")
+        print(f"📊 Scraped and stored {results['stored_products']} products")
 
-        # Show some example searches
-        print("\n🔍 Testing some searches...")
+        # Optional: Test some searches
+        print("\n🔍 Testing search functionality...")
+        search_results = scraper.search_products("laptop", n_results=3)
 
-        # Example searches
-        search_queries = [
-            "laptop gaming",
-            "phone",
-            "tablet",
-            "notebook computer"
-        ]
-
-        for query in search_queries:
-            print(f"\n--- Searching for: '{query}' ---")
-            results = scraper.search_products(query, n_results=3)
-            if results and results.get('count', 0) > 0:
-                print(f"Found {results['count']} results")
-            else:
-                print("No results found")
-
-        # Start interactive search
+        # Optional: Start interactive search
         choice = input("\n🤔 Start interactive search? (y/n): ").strip().lower()
         if choice in ['y', 'yes']:
             scraper.interactive_search()
 
     else:
         print(f"❌ Operation failed: {results.get('error', 'Unknown error')}")
+        print("Check the logs for more details.")
 
-
-if __name__ == "__main__":
-    main()
+# def main():
+#     """Main function demonstrating the integrated scraper"""
+#     # Configure custom paths
+#     SCRAPER_OUTPUT = "D:/Vector/ProductSeeker_db"  # Where to save scraped files
+#     DATABASE_PATH = "D:/Vector/ProductSeeker_data"  # Where to store vector database
+#     COLLECTION_NAME = "ecommerce_test"  # Database collection name
+#     URL = "https://books.toscrape.com/"
+#     MODEL_NAME = "clip-ViT-B-32"
+#     # Initialize integrated scraper
+#     scraper = IntegratedProductScraper(
+#         scraper_output_dir=SCRAPER_OUTPUT,
+#         db_path=DATABASE_PATH,
+#         collection_name=COLLECTION_NAME,
+#         url=URL,
+#         model_name=MODEL_NAME
+#     )
+#
+#     # Run the complete pipeline
+#     print("🚀 Starting integrated scraping and storage...")
+#     results = scraper.scrape_and_store(
+#         max_products_per_category=30,  # Limit products per category
+#         batch_size=50,  # Batch size for DB insertion
+#         save_json=True  # Save JSON backup
+#     )
+#
+#     if results['status'] == 'completed':
+#         print("\n✅ Operation completed successfully!")
+#
+#         # Show some example searches
+#         print("\n🔍 Testing some searches...")
+#
+#         # Example searches
+#         search_queries = [
+#             "laptop gaming",
+#             "phone",
+#             "tablet",
+#             "notebook computer"
+#         ]
+#
+#         for query in search_queries:
+#             print(f"\n--- Searching for: '{query}' ---")
+#             results = scraper.search_products(query, n_results=3)
+#             if results and results.get('count', 0) > 0:
+#                 print(f"Found {results['count']} results")
+#             else:
+#                 print("No results found")
+#
+#         # Start interactive search
+#         choice = input("\n🤔 Start interactive search? (y/n): ").strip().lower()
+#         if choice in ['y', 'yes']:
+#             scraper.interactive_search()
+#
+#     else:
+#         print(f"❌ Operation failed: {results.get('error', 'Unknown error')}")
+#
+#
+# if __name__ == "__main__":
+#     main()

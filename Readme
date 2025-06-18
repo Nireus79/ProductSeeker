@@ -293,10 +293,47 @@ To test system components:
 python launcher.py langgraph
 ```
 
-## 🤝 Support
-
 If you encounter issues:
 1. Check the troubleshooting section
 2. Verify all requirements are installed
 3. Ensure database has been populated with products
 4. Check system logs for detailed error messages
+
+Notes
+Improve search relevance:
+Scoring & Ranking Improvements:
+
+Implement TF-IDF (Term Frequency-Inverse Document Frequency) scoring to prioritize documents where query terms are both frequent and distinctive
+Use BM25 algorithm, which is often more effective than basic TF-IDF for text search
+Weight different fields differently (titles might be more important than body text)
+Boost recent content if recency matters for your use case
+
+Query Processing:
+
+Add synonym expansion so searches for "car" also find "automobile" and "vehicle"
+Implement stemming to match "running" with "run" and "runs"
+Use n-gram matching for partial word matches
+Handle phrase queries differently from individual word queries
+
+Content Analysis:
+
+Extract and index key entities (people, places, concepts) from your content
+Use topic modeling to understand document themes
+Implement semantic search using embeddings (vector search) alongside keyword search
+
+Machine Learning Approaches:
+
+Track which results users click on and use this as training data
+Implement learning-to-rank algorithms that optimize based on user behavior
+Use transformer models like BERT for better understanding of query intent
+
+Multi-Signal Ranking:
+
+Combine text relevance with other signals like content popularity, author authority, or user ratings
+Use a weighted scoring system that balances multiple relevance factors
+
+Quick Wins:
+
+Ensure exact phrase matches get higher scores
+Boost results that match multiple query terms
+Penalize results that are too short or too long relative to the query
