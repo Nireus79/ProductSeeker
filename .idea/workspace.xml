@@ -128,9 +128,9 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.main" />
       <item itemvalue="Python.Integrater" />
       <item itemvalue="Python.Launcher" />
+      <item itemvalue="Python.main" />
     </list>
     <recent_temporary>
       <list>
@@ -339,7 +339,15 @@
       <option name="project" value="LOCAL" />
       <updated>1750260404242</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="f">
+      <option name="closed" value="true" />
+      <created>1750263179054</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1750263179054</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

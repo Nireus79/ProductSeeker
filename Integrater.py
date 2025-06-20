@@ -255,8 +255,8 @@ class IntegratedProductScraper:
         return stats
 
 
-SCRAPER_OUTPUT = "D:/Vector/ProductSeeker_db"  # Where to save scraped files
-DATABASE_PATH = "D:/Vector/ProductSeeker_data"  # Where to store vector database
+SCRAPER_OUTPUT = "D:/Vector/ProductSeeker_data"  # Where to save scraped files
+DATABASE_PATH = "D:/Vector/ProductSeeker_db"  # Where to store vector database
 COLLECTION_NAME = "ecommerce_test"  # Database collection name
 URL = "https://books.toscrape.com/"
 MODEL_NAME = "clip-ViT-B-32"
