@@ -628,3 +628,277 @@ if __name__ == "__main__":
     print("□ Run 'python Launcher.py full-setup' for complete workflow")
 
     sys.exit(exit_code)
+
+
+# C:\Users\themi\AppData\Local\Programs\Python\Python313\python.exe "C:/Program Files/JetBrains/PyCharm Community Edition 2024.1.2/plugins/python-ce/helpers/pycharm/_jb_unittest_runner.py" --path C:\Users\themi\PycharmProjects\ProductSeeker\tst.py
+# Testing started at 11:38 AM ...
+# Launching unittests with arguments python -m unittest C:\Users\themi\PycharmProjects\ProductSeeker\tst.py in C:\Users\themi\PycharmProjects\ProductSeeker
+#
+# Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpqt26z4a6
+# Test environment cleaned up
+# Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpaa9c7kt8
+#
+# Error
+# Traceback (most recent call last):
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
+#     with self.decoration_helper(patched,
+#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+#                                 args,
+#                                 ^^^^^
+#                                 keywargs) as (newargs, newkeywargs):
+#                                 ^^^^^^^^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
+#     return next(self.gen)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
+#     arg = exit_stack.enter_context(patching)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
+#     result = _enter(cm)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
+#     original, local = self.get_original()
+#                       ~~~~~~~~~~~~~~~~~^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
+#     raise AttributeError(
+#         "%s does not have the attribute %r" % (target, name)
+#     )
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'ProductSeekerVectorDB'
+#
+#
+# Error
+# Traceback (most recent call last):
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
+#     with self.decoration_helper(patched,
+#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+#                                 args,
+#                                 ^^^^^
+#                                 keywargs) as (newargs, newkeywargs):
+#                                 ^^^^^^^^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
+#     return next(self.gen)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
+#     arg = exit_stack.enter_context(patching)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
+#     result = _enter(cm)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
+#     original, local = self.get_original()
+#                       ~~~~~~~~~~~~~~~~~^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
+#     raise AttributeError(
+#         "%s does not have the attribute %r" % (target, name)
+#     )
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'ProductSeekerVectorDB'
+#
+#
+# Error
+# Traceback (most recent call last):
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
+#     with self.decoration_helper(patched,
+#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+#                                 args,
+#                                 ^^^^^
+#                                 keywargs) as (newargs, newkeywargs):
+#                                 ^^^^^^^^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
+#     return next(self.gen)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
+#     arg = exit_stack.enter_context(patching)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
+#     result = _enter(cm)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
+#     original, local = self.get_original()
+#                       ~~~~~~~~~~~~~~~~~^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
+#     raise AttributeError(
+#         "%s does not have the attribute %r" % (target, name)
+#     )
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'ProductSeekerVectorDB'
+#
+# Test environment cleaned up
+# Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpw5kvdfow
+#
+# Error
+# Traceback (most recent call last):
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1424, in patched
+#     return func(*newargs, **newkeywargs)
+#   File "C:\Users\themi\PycharmProjects\ProductSeeker\tst.py", line 158, in test_setup_environment_missing_modules
+#     from Launcher import setup_environment
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1167, in __call__
+#     return self._mock_call(*args, **kwargs)
+#            ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1171, in _mock_call
+#     return self._execute_mock_call(*args, **kwargs)
+#            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1232, in _execute_mock_call
+#     result = effect(*args, **kwargs)
+# TypeError: TestEnvironmentSetup.test_setup_environment_missing_modules.<locals>.mock_import_side_effect() takes 1 positional argument but 5 were given
+#
+# Test environment cleaned up
+# Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpbk2nejru
+# usage: Launcher.py [-h] [--skip-checks]
+#                    {scrape,langgraph,bot,console-bot,status,full-setup}
+# Launcher.py: error: argument command: invalid choice: 'invalid_command' (choose from scrape, langgraph, bot, console-bot, status, full-setup)
+# Test environment cleaned up
+# Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpac85t6on
+#
+# Error
+# Traceback (most recent call last):
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
+#     with self.decoration_helper(patched,
+#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+#                                 args,
+#                                 ^^^^^
+#                                 keywargs) as (newargs, newkeywargs):
+#                                 ^^^^^^^^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
+#     return next(self.gen)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
+#     arg = exit_stack.enter_context(patching)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
+#     result = _enter(cm)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
+#     original, local = self.get_original()
+#                       ~~~~~~~~~~~~~~~~~^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
+#     raise AttributeError(
+#         "%s does not have the attribute %r" % (target, name)
+#     )
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'ImageSearchBot'
+#
+#
+# Error
+# Traceback (most recent call last):
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
+#     with self.decoration_helper(patched,
+#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+#                                 args,
+#                                 ^^^^^
+#                                 keywargs) as (newargs, newkeywargs):
+#                                 ^^^^^^^^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
+#     return next(self.gen)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
+#     arg = exit_stack.enter_context(patching)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
+#     result = _enter(cm)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
+#     original, local = self.get_original()
+#                       ~~~~~~~~~~~~~~~~~^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
+#     raise AttributeError(
+#         "%s does not have the attribute %r" % (target, name)
+#     )
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'ImageSearchBot'
+#
+#
+# Error
+# Traceback (most recent call last):
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
+#     with self.decoration_helper(patched,
+#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+#                                 args,
+#                                 ^^^^^
+#                                 keywargs) as (newargs, newkeywargs):
+#                                 ^^^^^^^^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
+#     return next(self.gen)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
+#     arg = exit_stack.enter_context(patching)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
+#     result = _enter(cm)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
+#     original, local = self.get_original()
+#                       ~~~~~~~~~~~~~~~~~^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
+#     raise AttributeError(
+#         "%s does not have the attribute %r" % (target, name)
+#     )
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'ImageSearchBot'
+#
+# Test environment cleaned up
+# Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpt8v54blb
+# Test environment cleaned up
+# Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpm8s5twl3
+# Test environment cleaned up
+# Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpme6fms_9
+# Test environment cleaned up
+#
+# Error
+# Traceback (most recent call last):
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
+#     with self.decoration_helper(patched,
+#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+#                                 args,
+#                                 ^^^^^
+#                                 keywargs) as (newargs, newkeywargs):
+#                                 ^^^^^^^^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
+#     return next(self.gen)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
+#     arg = exit_stack.enter_context(patching)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
+#     result = _enter(cm)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
+#     original, local = self.get_original()
+#                       ~~~~~~~~~~~~~~~~~^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
+#     raise AttributeError(
+#         "%s does not have the attribute %r" % (target, name)
+#     )
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'IntegratedProductScraper'
+#
+#
+# Error
+# Traceback (most recent call last):
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
+#     with self.decoration_helper(patched,
+#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+#                                 args,
+#                                 ^^^^^
+#                                 keywargs) as (newargs, newkeywargs):
+#                                 ^^^^^^^^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
+#     return next(self.gen)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
+#     arg = exit_stack.enter_context(patching)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
+#     result = _enter(cm)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
+#     original, local = self.get_original()
+#                       ~~~~~~~~~~~~~~~~~^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
+#     raise AttributeError(
+#         "%s does not have the attribute %r" % (target, name)
+#     )
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'IntegratedProductScraper'
+#
+#
+#
+# Ran 19 tests in 46.474s
+#
+# FAILED (errors=10)
+#
+# Error
+# Traceback (most recent call last):
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
+#     with self.decoration_helper(patched,
+#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+#                                 args,
+#                                 ^^^^^
+#                                 keywargs) as (newargs, newkeywargs):
+#                                 ^^^^^^^^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
+#     return next(self.gen)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
+#     arg = exit_stack.enter_context(patching)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
+#     result = _enter(cm)
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
+#     original, local = self.get_original()
+#                       ~~~~~~~~~~~~~~~~~^^
+#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
+#     raise AttributeError(
+#         "%s does not have the attribute %r" % (target, name)
+#     )
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'IntegratedProductScraper'
+#
+#
+# Process finished with exit code 1

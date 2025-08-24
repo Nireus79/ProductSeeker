@@ -5,7 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ed7bbc7b-6aa8-485b-bbca-f48586178bf3" name="Changes" comment="f">
+      <change afterPath="$PROJECT_DIR$/SocraticGenProductSeeker.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tst.py" beforeDir="false" afterPath="$PROJECT_DIR$/tst.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,6 +47,7 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;Python tests.Python tests in tst.py.executor&quot;: &quot;Run&quot;,
     &quot;Python.ImageSearchBot.executor&quot;: &quot;Run&quot;,
     &quot;Python.Integrater.executor&quot;: &quot;Run&quot;,
     &quot;Python.LangGraphProductSearchSystem (1).executor&quot;: &quot;Run&quot;,
@@ -62,7 +65,7 @@
     ]
   }
 }</component>
-  <component name="RunManager" selected="Python.Launcher">
+  <component name="RunManager" selected="Python tests.Python tests in tst.py">
     <configuration name="Integrater" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="ProductSeeker" />
       <option name="ENV_FILES" value="" />
@@ -129,13 +132,30 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="Python tests in tst.py" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="ProductSeeker" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/tst.py&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
     <list>
       <item itemvalue="Python.main" />
       <item itemvalue="Python.Integrater" />
       <item itemvalue="Python.Launcher" />
+      <item itemvalue="Python tests.Python tests in tst.py" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python tests.Python tests in tst.py" />
         <item itemvalue="Python.Launcher" />
         <item itemvalue="Python.Integrater" />
       </list>
@@ -357,7 +377,23 @@
       <option name="project" value="LOCAL" />
       <updated>1750405942444</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="f">
+      <option name="closed" value="true" />
+      <created>1755805092735</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1755805092735</updated>
+    </task>
+    <task id="LOCAL-00027" summary="f">
+      <option name="closed" value="true" />
+      <created>1755805400605</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1755805400605</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
