@@ -1,37 +1,20 @@
-#!/usr/bin/env python3
 import argparse
 import logging
 import sys
 from pathlib import Path
-
-# Import SocraticGenProductSeeker
-try:
-    from SocraticGenProductSeeker import (
-        main as product_seeker_main,
-        run_tests as product_seeker_tests,
-        ProductInput,
-        ProductMatch,
-        run_pipeline_sync
-    )
-
-    SOCRATIC_AVAILABLE = True
-except ImportError as e:
-    SOCRATIC_AVAILABLE = False
-    print(f"Warning: SocraticGenProductSeeker not available: {e}")
-
-try:
-    from LangGraphProductSearchSystem import LangGraphProductSearcher
-
-    LANGGRAPH_AVAILABLE = True
-except ImportError as e:
-    LANGGRAPH_AVAILABLE = False
-    print(f"Warning: LangGraphProductSearchSystem not available: {e}")
+from LangGraphProductSearchSystem import LangGraphProductSearcher
 
 """
-Fixed Product Search System Launcher
+Complete Product Search System Launcher
+Combines scraping, LangGraph integration, and image search bot
 """
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
 logger = logging.getLogger(__name__)
 
 # Configuration
@@ -42,56 +25,34 @@ URL = "https://books.toscrape.com/"
 MODEL_NAME = "clip-ViT-B-32"
 
 
-def safe_run_socratic_pipeline(input_data):
-    """Safe wrapper for Socratic pipeline that handles the AddableValuesDict issue"""
+def setup_environment():
+    """Setup environment and check dependencies"""
     try:
-        result = run_pipeline_sync(input_data)
+        # Check if required modules exist
+        required_modules = [
+            'Integrater',
+            'LangGraphProductSearchSystem',
+            'ImageSearchBot',
+            'Vector',
+            'Scraper'
+        ]
 
-        # Handle different result types
-        if hasattr(result, 'product_id'):
-            return {
-                'success': True,
-                'product_id': result.product_id,
-                'confidence': getattr(result, 'confidence', 0.0),
-                'alternatives': getattr(result, 'alternatives', [])
-            }
-        elif hasattr(result, 'final_result'):
-            final = result.final_result
-            if hasattr(final, 'product_id'):
-                return {
-                    'success': True,
-                    'product_id': final.product_id,
-                    'confidence': getattr(final, 'confidence', 0.0),
-                    'alternatives': getattr(final, 'alternatives', [])
-                }
-        elif isinstance(result, dict):
-            return {
-                'success': True,
-                'product_id': result.get('product_id', 'unknown'),
-                'confidence': result.get('confidence', 0.0),
-                'alternatives': result.get('alternatives', [])
-            }
-        else:
-            # Handle AddableValuesDict or other complex objects
-            if hasattr(result, '__dict__'):
-                result_dict = result.__dict__
-                return {
-                    'success': True,
-                    'product_id': result_dict.get('product_id', 'unknown'),
-                    'confidence': result_dict.get('confidence', 0.0),
-                    'alternatives': result_dict.get('alternatives', [])
-                }
-            else:
-                return {
-                    'success': False,
-                    'error': f'Unknown result format: {type(result)}'
-                }
+        missing_modules = []
+        for module in required_modules:
+            try:
+                __import__(module)
+            except ImportError:
+                missing_modules.append(module)
+
+        if missing_modules:
+            logger.error(f"Missing modules: {missing_modules}")
+            return False
+
+        return True
 
     except Exception as e:
-        return {
-            'success': False,
-            'error': str(e)
-        }
+        logger.error(f"Environment setup failed: {e}")
+        return False
 
 
 def run_scraper():
@@ -100,7 +61,7 @@ def run_scraper():
 
     try:
         from Integrater import IntegratedProductScraper
-
+        # Initialize and run scraper
         scraper = IntegratedProductScraper(
             url=URL,
             scraper_output_dir=SCRAPER_OUTPUT,
@@ -128,8 +89,86 @@ def run_scraper():
         return False
 
 
-def check_database():
-    """Simple database check"""
+def run_langgraph_system():
+    """Test the LangGraph system"""
+    logger.info("🤖 Testing LangGraph system...")
+
+    try:
+        # Initialize system
+        search_system = LangGraphProductSearcher(
+            db_path=DATABASE_PATH,
+            collection_name=COLLECTION_NAME,
+            model_name=MODEL_NAME
+        )
+        # Test searches
+        test_queries = [
+            "gaming laptop",
+            "smartphone android",
+            "wireless headphones"
+        ]
+        print("🔍 Testing LangGraph searches...")
+        for query in test_queries:
+            print(f"\n--- Testing: '{query}' ---")
+
+            # Use the correct method signature - only query and search_type
+            result = search_system.search(query, search_type="auto")
+
+            if result['success']:
+                results_count = len(result.get('results', []))
+                print(f"✅ Found {results_count} results")
+                print(f"🔄 Refinements made: {result.get('refinement_count', 0)}")
+
+                # Show the AI response messages
+                messages = result.get('messages', [])
+                for message in messages:
+                    if hasattr(message, 'content') and message.content:
+                        # Show first 200 characters of the response
+                        content = message.content[:200] + "..." if len(message.content) > 200 else message.content
+                        print(f"🤖 Response preview: {content}")
+                        break
+            else:
+                print(f"❌ Search failed: {result.get('error')}")
+
+        return True
+
+    except Exception as e:
+        logger.error(f"LangGraph system failed: {e}")
+        return False
+
+
+def run_image_bot(interface="streamlit"):
+    """Run the image search bot"""
+    logger.info(f"🖼️ Starting image search bot ({interface} interface)...")
+
+    try:
+        from ImageSearchBot import ImageSearchBot
+
+        # Initialize bot
+        bot = ImageSearchBot(
+            db_path=DATABASE_PATH,
+            collection_name=COLLECTION_NAME,
+            model_name=MODEL_NAME
+        )
+
+        if interface == "streamlit":
+            print("🌐 Starting Streamlit web interface...")
+            print("📱 Open your browser to: http://localhost:8501")
+            bot.run_streamlit_app()
+        else:
+            print("💻 Starting console interface...")
+            bot.run_console_interface()
+
+        return True
+
+    except Exception as e:
+        logger.error(f"Image bot failed: {e}")
+        return False
+
+
+def check_database_status():
+    """Check database status and statistics"""
+    logger.info("📊 Checking database status...")
+
     try:
         from Vector import ProductSeekerVectorDB
 
@@ -140,258 +179,123 @@ def check_database():
         )
 
         stats = db.get_database_stats()
-        total_products = stats.get('total_products', 0)
 
-        print(f"📊 Database has {total_products} products")
+        print("📊 Database Statistics:")
+        print(f"   Total Products: {stats.get('total_products', 0)}")
+        print(f"   Products with Images: {stats.get('products_with_images', 0)}")
+        print(f"   Database Path: {DATABASE_PATH}")
+        print(f"   Collection: {COLLECTION_NAME}")
 
-        if total_products == 0:
-            print("⚠️ Database is empty - run scraper first!")
+        if stats.get('total_products', 0) == 0:
+            print("⚠️  Database is empty - run scraper first!")
             return False
-
-        return True
-
-    except Exception as e:
-        print(f"❌ Database check failed: {e}")
-        return False
-
-
-def test_langgraph():
-    """Test LangGraph system with simple queries"""
-    if not LANGGRAPH_AVAILABLE:
-        print("❌ LangGraph system not available")
-        return False
-
-    try:
-        searcher = LangGraphProductSearcher(
-            db_path=DATABASE_PATH,
-            collection_name=COLLECTION_NAME,
-            model_name=MODEL_NAME
-        )
-
-        print("🤖 Testing LangGraph system...")
-
-        # Try different search types to find what works
-        search_types = ["vector", "semantic", "auto"]
-        query = "book"
-
-        for search_type in search_types:
-            try:
-                print(f"   Trying {search_type} search...")
-                result = searcher.search(query, search_type=search_type)
-
-                if result.get('success') and result.get('results'):
-                    results_count = len(result['results'])
-                    print(f"   ✅ {search_type.title()} search found {results_count} results")
-
-                    # Show sample results
-                    for i, product in enumerate(result['results'][:3], 1):
-                        print(f"     {i}. {product.get('title', 'N/A')}")
-
-                    return True
-                else:
-                    print(f"   ❌ {search_type.title()} search failed: {result.get('error', 'No results')}")
-
-            except Exception as e:
-                print(f"   ❌ {search_type.title()} search error: {e}")
-                continue
-
-        print("❌ All search types failed")
-        return False
-
-    except Exception as e:
-        print(f"❌ LangGraph test failed: {e}")
-        return False
-
-
-def test_socratic():
-    """Test Socratic system"""
-    if not SOCRATIC_AVAILABLE:
-        print("❌ Socratic system not available")
-        return False
-
-    try:
-        print("🎯 Testing Socratic system...")
-
-        # Test text query
-        input_data = ProductInput(
-            text_query="book",
-            weights={"text": 1.0, "image": 0.0, "voice": 0.0}
-        )
-
-        result = safe_run_socratic_pipeline(input_data)
-
-        if result['success']:
-            print(f"✅ Socratic search successful")
-            print(f"   Product ID: {result['product_id']}")
-            print(f"   Confidence: {result['confidence']:.2f}")
-            print(f"   Alternatives: {len(result['alternatives'])}")
-            return True
         else:
-            print(f"❌ Socratic search failed: {result['error']}")
-            return False
+            print("✅ Database is ready for searches!")
+            return True
 
     except Exception as e:
-        print(f"❌ Socratic test failed: {e}")
+        logger.error(f"Database check failed: {e}")
         return False
-
-
-def run_interactive_search():
-    """Interactive search using both systems"""
-    print("\n🔍 Interactive Product Search")
-    print("=" * 40)
-
-    # Check which systems are available
-    langgraph_ready = LANGGRAPH_AVAILABLE and check_database()
-    socratic_ready = SOCRATIC_AVAILABLE
-
-    if not langgraph_ready and not socratic_ready:
-        print("❌ No search systems available!")
-        return False
-
-    print(f"Available systems:")
-    if langgraph_ready:
-        print("  🤖 LangGraph (Vector-based)")
-    if socratic_ready:
-        print("  🎯 Socratic (Multimodal)")
-
-    while True:
-        query = input("\n🔍 Enter search query (or 'quit' to exit): ").strip()
-
-        if query.lower() in ['quit', 'exit', 'q']:
-            break
-
-        if not query:
-            print("Please enter a search query")
-            continue
-
-        print(f"\nSearching for: '{query}'")
-        print("-" * 30)
-
-        # Try LangGraph
-        if langgraph_ready:
-            try:
-                searcher = LangGraphProductSearcher(
-                    db_path=DATABASE_PATH,
-                    collection_name=COLLECTION_NAME,
-                    model_name=MODEL_NAME
-                )
-
-                result = searcher.search(query, search_type="auto")
-
-                if result.get('success') and result.get('results'):
-                    print(f"🤖 LangGraph found {len(result['results'])} results:")
-                    for i, product in enumerate(result['results'][:5], 1):
-                        print(f"   {i}. {product.get('title', 'N/A')} - {product.get('price', 'N/A')}")
-                else:
-                    print(f"🤖 LangGraph: No results")
-
-            except Exception as e:
-                print(f"🤖 LangGraph error: {e}")
-
-        # Try Socratic
-        if socratic_ready:
-            try:
-                input_data = ProductInput(
-                    text_query=query,
-                    weights={"text": 1.0, "image": 0.0, "voice": 0.0}
-                )
-
-                result = safe_run_socratic_pipeline(input_data)
-
-                if result['success']:
-                    print(f"🎯 Socratic result:")
-                    print(f"   Product: {result['product_id']}")
-                    print(f"   Confidence: {result['confidence']:.2f}")
-                else:
-                    print(f"🎯 Socratic: {result['error']}")
-
-            except Exception as e:
-                print(f"🎯 Socratic error: {e}")
-
-    print("👋 Goodbye!")
-    return True
 
 
 def main():
     """Main launcher function"""
-    parser = argparse.ArgumentParser(description="Fixed Product Search System")
+    parser = argparse.ArgumentParser(
+        description="Product Search System - Complete AI-powered e-commerce search solution"
+    )
+
     parser.add_argument(
         'command',
-        choices=['scrape', 'test', 'search', 'langgraph', 'socratic', 'setup'],
-        help='Command to execute',
-        nargs='?',
-        default='search'
+        choices=['scrape', 'langgraph', 'bot', 'console-bot', 'status', 'full-setup'],
+        help='Command to execute'
+    )
+
+    parser.add_argument(
+        '--skip-checks',
+        action='store_true',
+        help='Skip environment checks'
     )
 
     args = parser.parse_args()
 
-    print("🔍 Product Search System - Fixed Version")
+    print("🔍 Product Search System Launcher")
     print("=" * 50)
 
-    if args.command == 'scrape':
-        if not run_scraper():
+    # Environment setup
+    if not args.skip_checks:
+        print("🔧 Checking environment...")
+        if not setup_environment():
+            print("❌ Environment check failed!")
             sys.exit(1)
+        print("✅ Environment ready!")
 
-    elif args.command == 'test':
-        print("🧪 Testing all systems...")
+    # Execute command
+    if args.command == 'status':
+        check_database_status()
 
-        # Check database
-        db_ok = check_database()
-        if not db_ok:
-            print("Run 'scrape' first to populate database")
-            sys.exit(1)
-
-        # Test systems
-        langgraph_ok = test_langgraph()
-        socratic_ok = test_socratic()
-
-        if langgraph_ok or socratic_ok:
-            print("✅ At least one system working!")
-        else:
-            print("❌ No systems working!")
+    elif args.command == 'scrape':
+        success = run_scraper()
+        if not success:
             sys.exit(1)
 
     elif args.command == 'langgraph':
-        if not check_database():
-            print("Run 'scrape' first!")
-            sys.exit(1)
-        if not test_langgraph():
-            sys.exit(1)
-
-    elif args.command == 'socratic':
-        if not test_socratic():
+        # Check database first
+        if not check_database_status():
+            print("❌ Database not ready - run 'scrape' first!")
             sys.exit(1)
 
-    elif args.command == 'search':
-        run_interactive_search()
+        success = run_langgraph_system()
+        if not success:
+            sys.exit(1)
 
-    elif args.command == 'setup':
-        print("🚀 Complete setup...")
+    elif args.command == 'bot':
+        # Check database first
+        if not check_database_status():
+            print("❌ Database not ready - run 'scrape' first!")
+            sys.exit(1)
+
+        success = run_image_bot("streamlit")
+        if not success:
+            sys.exit(1)
+
+    elif args.command == 'console-bot':
+        # Check database first
+        if not check_database_status():
+            print("❌ Database not ready - run 'scrape' first!")
+            sys.exit(1)
+
+        success = run_image_bot("console")
+        if not success:
+            sys.exit(1)
+
+    elif args.command == 'full-setup':
+        print("🚀 Running complete setup...")
 
         # Step 1: Scrape
+        print("\n📥 Step 1: Scraping products...")
         if not run_scraper():
             print("❌ Scraping failed!")
             sys.exit(1)
 
-        # Step 2: Test
-        if not check_database():
-            print("❌ Database check failed!")
+        # Step 2: Test LangGraph
+        print("\n🤖 Step 2: Testing LangGraph system...")
+        if not run_langgraph_system():
+            print("❌ LangGraph test failed!")
             sys.exit(1)
 
-        # Step 3: Test systems
-        langgraph_ok = test_langgraph()
-        socratic_ok = test_socratic()
-
-        if langgraph_ok or socratic_ok:
-            print("✅ Setup complete!")
-            print("Run: python Launcher.py search")
-        else:
-            print("❌ Setup failed!")
+        # Step 3: Final status check
+        print("\n📊 Step 3: Final status check...")
+        if not check_database_status():
+            print("❌ Database not ready!")
             sys.exit(1)
+
+        print("\n🎉 Complete setup finished successfully!")
+        print("Now you can run:")
+        print("  python launcher.py bot          # Web interface")
+        print("  python launcher.py console-bot  # Console interface")
 
 
 if __name__ == "__main__":
+    sys.argv = ['Launcher.py', 'console-bot']  # 'scrape', 'langgraph', 'bot', 'console-bot', 'status', 'full-setup'
+    sys.argv = ['Launcher.py', 'console-bot']
     main()
-
-
-
