@@ -1,16 +1,31 @@
 from typing import Dict, List, Optional, Union, Any
 from pydantic import BaseModel, Field
-from langgraph.graph import StateGraph, END
 import numpy as np
-from PIL import Image
-import torch
-from transformers import ViTFeatureExtractor, ViTModel
 import logging
 from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Check for optional dependencies
+try:
+    from langgraph.graph import StateGraph, END
+
+    LANGGRAPH_AVAILABLE = True
+except ImportError:
+    LANGGRAPH_AVAILABLE = False
+    logger.warning("LangGraph not available - using simplified processing")
+
+try:
+    from PIL import Image
+    import torch
+    from transformers import ViTFeatureExtractor, ViTModel
+
+    ML_DEPENDENCIES_AVAILABLE = True
+except ImportError:
+    ML_DEPENDENCIES_AVAILABLE = False
+    logger.warning("ML dependencies not available - using mock processing")
 
 
 # State Schema Definition
@@ -56,6 +71,19 @@ def process_image(state: ProductSearchState) -> ProductSearchState:
     try:
         if not state.image_path:
             logger.info("No image path provided, skipping image processing")
+            state.image_features = None
+            return state
+
+        if not ML_DEPENDENCIES_AVAILABLE:
+            logger.info("ML dependencies not available, using mock image processing")
+            # Mock processing - generate dummy features
+            state.image_features = np.random.random((1, 768))
+            return state
+
+        # Check if image file exists
+        import os
+        if not os.path.exists(state.image_path):
+            logger.warning(f"Image file not found: {state.image_path}")
             state.image_features = None
             return state
 
@@ -200,8 +228,19 @@ def compute_combined_score(
 
 
 def create_product_matching_pipeline():
-    """Creates and configures the product matching pipeline using LangGraph"""
+    """Creates and configures the product matching pipeline using LangGraph or simplified version"""
     try:
+        if not LANGGRAPH_AVAILABLE:
+            # Return a simple pipeline function
+            def simple_pipeline(state: ProductSearchState) -> ProductSearchState:
+                state = process_image(state)
+                state = process_text(state)
+                state = process_voice(state)
+                state = match_products(state)
+                return state
+
+            return simple_pipeline
+
         # Create the graph
         workflow = StateGraph(ProductSearchState)
 
@@ -229,8 +268,8 @@ def create_product_matching_pipeline():
         raise
 
 
-async def run_pipeline(input_data: ProductInput) -> ProductMatch:
-    """Run the product matching pipeline"""
+def run_pipeline_sync(input_data: ProductInput) -> ProductMatch:
+    """Synchronous version of run_pipeline for launcher compatibility"""
     try:
         # Create pipeline
         app = create_product_matching_pipeline()
@@ -244,7 +283,10 @@ async def run_pipeline(input_data: ProductInput) -> ProductMatch:
         )
 
         # Execute pipeline
-        result = app.invoke(initial_state)
+        if LANGGRAPH_AVAILABLE:
+            result = app.invoke(initial_state)
+        else:
+            result = app(initial_state)  # Simple function call
 
         if result.final_result is None:
             raise ValueError("Pipeline failed to produce a result")
@@ -257,74 +299,146 @@ async def run_pipeline(input_data: ProductInput) -> ProductMatch:
         raise
 
 
-async def main():
-    """Main execution function"""
+# Main function for launcher compatibility
+def main():
+    """Main execution function - launcher entry point"""
+    print("=== Socratic Generation Product Seeker ===")
+    print("This tool performs multimodal product matching using image, text, and voice inputs.")
+    print()
+
+    # Check dependencies
+    print("Dependency Status:")
+    print(f"  LangGraph: {'✓ Available' if LANGGRAPH_AVAILABLE else '✗ Not available (using simplified processing)'}")
+    print(
+        f"  ML Libraries: {'✓ Available' if ML_DEPENDENCIES_AVAILABLE else '✗ Not available (using mock processing)'}")
+    print()
+
     try:
-        # Example input with image and text
+        # Interactive mode
+        print("Enter your product search details:")
+
+        # Get text query
+        text_query = input("Text description (or press Enter to skip): ").strip()
+        if not text_query:
+            text_query = None
+
+        # Get voice query
+        voice_query = input("Voice description (or press Enter to skip): ").strip()
+        if not voice_query:
+            voice_query = None
+
+        # Get image path
+        image_path = input("Image path (or press Enter to skip): ").strip()
+        if not image_path:
+            image_path = None
+
+        # Validate at least one input
+        if not any([text_query, voice_query, image_path]):
+            print("Error: At least one input (text, voice, or image) is required.")
+            return
+
+        # Get weights (optional)
+        print("\nUsing default weights: image=0.6, text=0.3, voice=0.1")
+        use_custom = input("Use custom weights? (y/n): ").lower().startswith('y')
+
+        weights = {"image": 0.6, "text": 0.3, "voice": 0.1}
+        if use_custom:
+            try:
+                weights["image"] = float(input("Image weight (0-1): ") or "0.6")
+                weights["text"] = float(input("Text weight (0-1): ") or "0.3")
+                weights["voice"] = float(input("Voice weight (0-1): ") or "0.1")
+            except ValueError:
+                print("Invalid weight values, using defaults.")
+                weights = {"image": 0.6, "text": 0.3, "voice": 0.1}
+
+        # Create input
         test_input = ProductInput(
-            image_path="test_image.jpg",
-            text_query="blue casual shirt",
-            weights={"image": 0.7, "text": 0.3}
+            image_path=image_path,
+            text_query=text_query,
+            voice_query=voice_query,
+            weights=weights
         )
 
-        # Execute pipeline
-        result = await run_pipeline(test_input)
-        logger.info(f"Matching results: {result}")
+        print("\nProcessing...")
 
-        return result
+        # Execute pipeline
+        result = run_pipeline_sync(test_input)
+
+        # Display results
+        print("\n=== RESULTS ===")
+        print(f"Best Match: {result.product_id}")
+        print(f"Confidence: {result.confidence:.2f}")
+        print("\nSimilarity Scores:")
+        for modality, score in result.similarity_scores.items():
+            print(f"  {modality}: {score:.2f}")
+
+        print("\nAlternative Products:")
+        for i, alt in enumerate(result.alternatives, 1):
+            print(f"  {i}. {alt['product_id']} (confidence: {alt['confidence']:.2f})")
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.")
     except Exception as e:
         logger.error(f"Main execution failed: {e}")
-        raise
+        print(f"Error: {e}")
 
 
+# Test function for development
+def run_tests():
+    """Test function for development and validation"""
+    try:
+        print("Running tests...")
+
+        # Test 1: With text query only
+        test_input_text_only = ProductInput(
+            text_query="red running shoes",
+            weights={"text": 1.0, "image": 0.0, "voice": 0.0}
+        )
+
+        result = run_pipeline_sync(test_input_text_only)
+        assert isinstance(result, ProductMatch)
+        assert result.confidence > 0
+        print("✓ Test 1 (text only) passed")
+
+        # Test 2: With voice query only
+        test_input_voice_only = ProductInput(
+            voice_query="looking for a winter jacket",
+            weights={"voice": 1.0, "image": 0.0, "text": 0.0}
+        )
+
+        result = run_pipeline_sync(test_input_voice_only)
+        assert isinstance(result, ProductMatch)
+        assert result.confidence > 0
+        print("✓ Test 2 (voice only) passed")
+
+        # Test 3: Mixed input
+        test_input_mixed = ProductInput(
+            text_query="comfortable sneakers",
+            voice_query="something for running",
+            weights={"text": 0.6, "voice": 0.4, "image": 0.0}
+        )
+
+        result = run_pipeline_sync(test_input_mixed)
+        assert isinstance(result, ProductMatch)
+        assert result.confidence > 0
+        print("✓ Test 3 (mixed input) passed")
+
+        print("All tests passed successfully!")
+        return True
+
+    except AssertionError as e:
+        print(f"✗ Test assertion failed: {e}")
+        return False
+    except Exception as e:
+        print(f"✗ Unexpected error during testing: {e}")
+        return False
+
+
+# Entry point for both launcher and standalone execution
 if __name__ == "__main__":
-    import asyncio
+    import sys
 
-
-    # Basic test function
-    async def run_tests():
-        try:
-            # Test 1: With text query only (no image file required)
-            test_input_text_only = ProductInput(
-                text_query="red running shoes",
-                weights={"text": 1.0}
-            )
-
-            result = await run_pipeline(test_input_text_only)
-            assert isinstance(result, ProductMatch)
-            assert result.confidence > 0
-            logger.info("Test 1 (text only) passed successfully")
-
-            # Test 2: With voice query only
-            test_input_voice_only = ProductInput(
-                voice_query="looking for a winter jacket",
-                weights={"voice": 1.0}
-            )
-
-            result = await run_pipeline(test_input_voice_only)
-            assert isinstance(result, ProductMatch)
-            assert result.confidence > 0
-            logger.info("Test 2 (voice only) passed successfully")
-
-            # Test 3: Mixed input (no image file required)
-            test_input_mixed = ProductInput(
-                text_query="comfortable sneakers",
-                voice_query="something for running",
-                weights={"text": 0.6, "voice": 0.4}
-            )
-
-            result = await run_pipeline(test_input_mixed)
-            assert isinstance(result, ProductMatch)
-            assert result.confidence > 0
-            logger.info("Test 3 (mixed input) passed successfully")
-
-            logger.info("All tests passed successfully!")
-
-        except AssertionError as e:
-            logger.error(f"Test assertion failed: {e}")
-        except Exception as e:
-            logger.error(f"Unexpected error during testing: {e}")
-
-
-    # Run tests
-    asyncio.run(run_tests())
+    if len(sys.argv) > 1 and sys.argv[1] == "test":
+        run_tests()
+    else:
+        main()
