@@ -844,3 +844,36 @@ class AgenticProductSearchSystem:
             return self._build_simple_workflow()
 
     def _build_langgraph_workflow(self):
+        """Build LangGraph workflow"""
+        workflow = StateGraph(AgenticSearchState)
+
+        # Add nodes
+        workflow.add_node("voice_processing", self.voice_agent.execute)
+        workflow.add_node("image_processing", self.image_agent.execute)
+        workflow.add_node("intent_analysis", self.intent_agent.execute)
+        workflow.add_node("search_execution", self.search_agent.execute)
+        workflow.add_node("recommendations", self.recommendation_agent.execute)
+        workflow.add_node("response_formatting", self.response_agent.execute)
+
+        # Set entry point
+        workflow.set_entry_point("voice_processing")
+
+        # Add edges
+        workflow.add_edge("voice_processing", "image_processing")
+        workflow.add_edge("image_processing", "intent_analysis")
+        workflow.add_edge("intent_analysis", "search_execution")
+        workflow.add_edge("search_execution", "recommendations")
+        workflow.add_edge("recommendations", "response_formatting")
+        workflow.add_edge("response_formatting", END)
+
+        return workflow.compile()
+
+    def _build_simple_workflow(self):
+        """Build simplified workflow for when LangGraph is not available"""
+        workflow = StateGraph(AgenticSearchState)
+
+        workflow.add_node("voice_processing", self.voice_agent.execute)
+        workflow.add_node("image_processing", self.image_agent.execute)
+        workflow.add_node("intent_analysis", self.intent_agent.execute)
+        workflow.add_node("search_execution", self.search_agent.execute)
+        workflow.add_node("recommendations", self.recommendation_agent

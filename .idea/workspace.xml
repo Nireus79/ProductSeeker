@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed7bbc7b-6aa8-485b-bbca-f48586178bf3" name="Changes" comment="Initial Launcher.">
+    <list default="true" id="ed7bbc7b-6aa8-485b-bbca-f48586178bf3" name="Changes" comment="Socratic">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SocraticGenProductSeeker.py" beforeDir="false" afterPath="$PROJECT_DIR$/SocraticGenProductSeeker.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -192,11 +193,11 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.Integrater" />
-      <item itemvalue="Python.LangGraphProductSearchSystem" />
-      <item itemvalue="Python.Launcher" />
-      <item itemvalue="Python.SocraticGenProductSeeker" />
       <item itemvalue="Python.main" />
+      <item itemvalue="Python.LangGraphProductSearchSystem" />
+      <item itemvalue="Python.SocraticGenProductSeeker" />
+      <item itemvalue="Python.Integrater" />
+      <item itemvalue="Python.Launcher" />
       <item itemvalue="Python tests.Python tests in tst.py" />
     </list>
     <recent_temporary>
@@ -481,7 +482,15 @@
       <option name="project" value="LOCAL" />
       <updated>1756046701869</updated>
     </task>
-    <option name="localTasksCounter" value="33" />
+    <task id="LOCAL-00033" summary="Socratic">
+      <option name="closed" value="true" />
+      <created>1756150540885</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1756150540885</updated>
+    </task>
+    <option name="localTasksCounter" value="34" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -494,6 +503,7 @@
     <MESSAGE value="f" />
     <MESSAGE value="SocraticGen" />
     <MESSAGE value="Initial Launcher." />
-    <option name="LAST_COMMIT_MESSAGE" value="Initial Launcher." />
+    <MESSAGE value="Socratic" />
+    <option name="LAST_COMMIT_MESSAGE" value="Socratic" />
   </component>
 </project>
