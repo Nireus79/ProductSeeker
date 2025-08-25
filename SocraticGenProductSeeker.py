@@ -75,7 +75,6 @@ except ImportError:
     print("Warning: LangGraph not available. Using simplified workflow.")
     LANGGRAPH_AVAILABLE = False
 
-
     # Mock classes for when LangGraph is not available
     class StateGraph:
         def __init__(self, state_type):
@@ -147,7 +146,6 @@ except ImportError as e:
     print(f"Warning: Database modules not found ({e}). Using mock implementations.")
     DATABASE_AVAILABLE = False
 
-
     class ProductSeekerVectorDB:
         def __init__(self, *args, **kwargs):
             self.mock_data = True
@@ -166,7 +164,8 @@ except ImportError as e:
                         'price': f'${(i + 1) * 99 + 50}.99',
                         'category': 'Electronics',
                         'brand': f'TechBrand{i + 1}',
-                        'description': f'High-quality {query} with advanced features and excellent performance. Perfect for both professional and personal use.',
+                        'description': f'High-quality {query} with advanced features and excellent performance. '
+                                       f'Perfect for both professional and personal use.',
                         'rating': round(4.0 + (i * 0.2), 1),
                         'reviews': 100 + (i * 50)
                     }
@@ -184,7 +183,6 @@ except ImportError as e:
                 "database_path": self.db_path,
                 "status": "mock"
             }
-
 
     class IntegratedProductScraper:
         def __init__(self, *args, **kwargs):
@@ -867,4 +865,745 @@ class AgenticProductSearchSystem:
         )
 
         self.response_agent = ResponseFormattingAgent(
-            Agent
+            AgentConfig(name="response", max_retries=1),
+            self.config
+        )
+
+        logger.info("🤖 All agents initialized successfully")
+
+    def _build_agentic_graph(self):
+        """Build the agentic workflow graph"""
+        if not LANGGRAPH_AVAILABLE:
+            # Create simplified workflow
+            workflow = StateGraph(AgenticSearchState)
+        else:
+            workflow = StateGraph(AgenticSearchState)
+
+        # Add nodes for each agent
+        workflow.add_node("voice_processing", self.voice_agent.execute)
+        workflow.add_node("image_processing", self.image_agent.execute)
+        workflow.add_node("intent_analysis", self.intent_agent.execute)
+        workflow.add_node("search_execution", self.search_agent.execute)
+        workflow.add_node("recommendations", self.recommendation_agent.execute)
+        workflow.add_node("response_formatting", self.response_agent.execute)
+
+        # Define the flow
+        workflow.set_entry_point("intent_analysis")
+
+        # Conditional routing based on input type
+        def route_by_input_type(state):
+            search_type = state.get("search_type", "text")
+            if search_type == "voice":
+                return "voice_processing"
+            elif search_type == "image":
+                return "image_processing"
+            else:
+                return "search_execution"
+
+        workflow.add_conditional_edges(
+            "intent_analysis",
+            route_by_input_type,
+            {
+                "voice_processing": "voice_processing",
+                "image_processing": "image_processing",
+                "search_execution": "search_execution"
+            }
+        )
+
+        # Route from voice/image processing to search
+        workflow.add_edge("voice_processing", "search_execution")
+        workflow.add_edge("image_processing", "search_execution")
+
+        # Final steps
+        workflow.add_edge("search_execution", "recommendations")
+        workflow.add_edge("recommendations", "response_formatting")
+        workflow.add_edge("response_formatting", END)
+
+        return workflow.compile()
+
+    def get_user_profile(self, user_id: str = None) -> UserProfile:
+        """Get or create user profile"""
+        user_id = user_id or self.current_user
+
+        if user_id not in self.user_profiles:
+            self.user_profiles[user_id] = UserProfile(user_id=user_id)
+
+        return self.user_profiles[user_id]
+
+    async def search_async(self,
+                           query: str = None,
+                           search_type: str = "text",
+                           image_path: str = None,
+                           audio_data: bytes = None,
+                           user_id: str = None) -> Dict[str, Any]:
+        """Async search method"""
+        return await asyncio.to_thread(
+            self.search,
+            query=query,
+            search_type=search_type,
+            image_path=image_path,
+            audio_data=audio_data,
+            user_id=user_id
+        )
+
+    def search(self,
+               query: str = None,
+               search_type: str = "text",
+               image_path: str = None,
+               audio_data: bytes = None,
+               user_id: str = None,
+               **kwargs) -> Dict[str, Any]:
+        """
+        Main search method with multi-modal support
+
+        Args:
+            query: Text query for search
+            search_type: Type of search ('text', 'voice', 'image', 'hybrid')
+            image_path: Path to image file for image search
+            audio_data: Audio data for voice search
+            user_id: User identifier for personalization
+            **kwargs: Additional parameters
+
+        Returns:
+            Search results with explanations and metadata
+        """
+        start_time = time.time()
+        self.system_stats["total_queries"] += 1
+
+        try:
+            # Prepare input data
+            input_data = {}
+            if query:
+                input_data["text_query"] = query
+            if image_path:
+                input_data["image_path"] = image_path
+            if audio_data:
+                input_data["audio_data"] = audio_data
+
+            # Initialize search state
+            state = AgenticSearchState(
+                messages=[HumanMessage(content=query or "Search request")],
+                original_query=query or "",
+                current_query=query or "",
+                search_type=search_type,
+                input_data=input_data,
+                processed_input={},
+                search_results=[],
+                user_intent={},
+                user_profile=self.get_user_profile(user_id),
+                performance_metrics={},
+                explanations=[],
+                suggestions=[],
+                refinement_count=0,
+                session_id=self.session_id,
+                timestamp=datetime.now()
+            )
+
+            # Execute the agentic workflow
+            logger.info(f"🚀 Starting {search_type} search: '{query}'")
+            final_state = self.graph.invoke(state)
+
+            # Calculate metrics
+            response_time = time.time() - start_time
+            self._update_system_stats(response_time, True)
+
+            # Extract response
+            response_content = ""
+            if final_state.get("messages"):
+                last_message = final_state["messages"][-1]
+                response_content = getattr(last_message, 'content', str(last_message))
+
+            result = {
+                "success": True,
+                "results": final_state.get("search_results", []),
+                "response": response_content,
+                "explanations": final_state.get("explanations", []),
+                "suggestions": final_state.get("suggestions", []),
+                "user_intent": final_state.get("user_intent", {}),
+                "search_type": search_type,
+                "response_time": response_time,
+                "session_id": self.session_id,
+                "timestamp": datetime.now().isoformat()
+            }
+
+            logger.info(f"✅ Search completed in {response_time:.2f}s")
+            return result
+
+        except Exception as e:
+            logger.error(f"❌ Search failed: {e}")
+            self._update_system_stats(time.time() - start_time, False)
+
+            return {
+                "success": False,
+                "error": str(e),
+                "results": [],
+                "response": f"❌ Search failed: {e}",
+                "explanations": [f"Error occurred: {e}"],
+                "suggestions": ["Try a simpler query", "Check your input format"],
+                "response_time": time.time() - start_time,
+                "session_id": self.session_id,
+                "timestamp": datetime.now().isoformat()
+            }
+
+    def search_by_voice(self, duration: int = 5) -> Dict[str, Any]:
+        """Record voice and perform search"""
+        if not self.voice_agent.available:
+            return {
+                "success": False,
+                "error": "Voice processing not available",
+                "response": "🎤 Voice search is not available. Please use text search instead."
+            }
+
+        logger.info(f"🎤 Starting voice recording for {duration} seconds...")
+
+        # Simplified voice recording simulation
+        mock_audio = b"mock_audio_data"
+
+        return self.search(
+            search_type="voice",
+            audio_data=mock_audio
+        )
+
+    def search_by_image(self, image_path: str) -> Dict[str, Any]:
+        """Search using image input"""
+        if not Path(image_path).exists():
+            return {
+                "success": False,
+                "error": f"Image file not found: {image_path}",
+                "response": "📸 Image file not found. Please check the file path."
+            }
+
+        return self.search(
+            search_type="image",
+            image_path=image_path
+        )
+
+    def get_database_info(self) -> Dict[str, Any]:
+        """Get database information and statistics"""
+        try:
+            stats = self.db.get_database_stats()
+            stats.update({
+                "system_stats": self.system_stats,
+                "agents_available": {
+                    "voice": self.voice_agent.available,
+                    "image": self.image_agent.available,
+                    "database": DATABASE_AVAILABLE
+                }
+            })
+            return stats
+        except Exception as e:
+            return {
+                "error": str(e),
+                "system_stats": self.system_stats
+            }
+
+    def get_system_status(self) -> Dict[str, Any]:
+        """Get comprehensive system status"""
+        return {
+            "system_ready": True,
+            "database_connected": DATABASE_AVAILABLE,
+            "voice_available": self.voice_agent.available,
+            "image_available": self.image_agent.available,
+            "langgraph_available": LANGGRAPH_AVAILABLE,
+            "session_id": self.session_id,
+            "stats": self.system_stats,
+            "config": {
+                "max_results": self.config.max_results,
+                "voice_enabled": self.config.voice_enabled,
+                "image_enabled": self.config.image_enabled,
+                "learning_enabled": self.config.learning_enabled
+            }
+        }
+
+    def _update_system_stats(self, response_time: float, success: bool):
+        """Update system performance statistics"""
+        if success:
+            self.system_stats["successful_queries"] += 1
+
+        # Update average response time
+        total_queries = self.system_stats["total_queries"]
+        current_avg = self.system_stats["average_response_time"]
+        new_avg = ((current_avg * (total_queries - 1)) + response_time) / total_queries
+        self.system_stats["average_response_time"] = new_avg
+
+    def speak_response(self, text: str):
+        """Use TTS to speak the response"""
+        if self.voice_agent.available:
+            self.voice_agent.speak(text)
+        else:
+            logger.info("TTS not available")
+
+
+class ProductSearchGUI:
+    """Enhanced GUI for the product search system"""
+
+    def __init__(self):
+        if not GUI_AVAILABLE:
+            raise RuntimeError("GUI not available - tkinter not installed")
+
+        self.search_system = None
+        self.setup_gui()
+        self.initialize_search_system()
+
+    def setup_gui(self):
+        """Setup the GUI interface"""
+        self.root = tk.Tk()
+        self.root.title("🤖 Advanced Product Search System")
+        self.root.geometry("1000x700")
+        self.root.configure(bg='#f0f0f0')
+
+        # Main container
+        main_frame = ttk.Frame(self.root, padding="10")
+        main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+        # Title
+        title_label = ttk.Label(main_frame, text="🤖 Advanced Agentic Product Search",
+                                font=("Arial", 16, "bold"))
+        title_label.grid(row=0, column=0, columnspan=3, pady=10)
+
+        # Search input frame
+        search_frame = ttk.LabelFrame(main_frame, text="Search Input", padding="10")
+        search_frame.grid(row=1, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=5)
+
+        # Text search
+        ttk.Label(search_frame, text="Text Query:").grid(row=0, column=0, sticky=tk.W)
+        self.query_var = tk.StringVar(value="gaming laptop under $1000")
+        self.query_entry = ttk.Entry(search_frame, textvariable=self.query_var, width=50)
+        self.query_entry.grid(row=0, column=1, padx=5, sticky=(tk.W, tk.E))
+
+        # Buttons frame
+        buttons_frame = ttk.Frame(search_frame)
+        buttons_frame.grid(row=1, column=0, columnspan=3, pady=10)
+
+        # Search buttons
+        self.search_btn = ttk.Button(buttons_frame, text="🔍 Search", command=self.text_search)
+        self.search_btn.pack(side=tk.LEFT, padx=2)
+
+        self.voice_btn = ttk.Button(buttons_frame, text="🎤 Voice Search", command=self.voice_search)
+        self.voice_btn.pack(side=tk.LEFT, padx=2)
+
+        self.image_btn = ttk.Button(buttons_frame, text="📸 Image Search", command=self.image_search)
+        self.image_btn.pack(side=tk.LEFT, padx=2)
+
+        self.clear_btn = ttk.Button(buttons_frame, text="🗑️ Clear", command=self.clear_results)
+        self.clear_btn.pack(side=tk.LEFT, padx=2)
+
+        # Status frame
+        status_frame = ttk.LabelFrame(main_frame, text="System Status", padding="5")
+        status_frame.grid(row=2, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=5)
+
+        self.status_text = tk.Text(status_frame, height=4, width=80)
+        self.status_text.pack(fill=tk.BOTH, expand=True)
+
+        # Results frame
+        results_frame = ttk.LabelFrame(main_frame, text="Search Results", padding="5")
+        results_frame.grid(row=3, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=5)
+
+        # Results text with scrollbar
+        results_container = ttk.Frame(results_frame)
+        results_container.pack(fill=tk.BOTH, expand=True)
+
+        self.results_text = tk.Text(results_container, height=20, width=80, wrap=tk.WORD)
+        scrollbar = ttk.Scrollbar(results_container, orient=tk.VERTICAL, command=self.results_text.yview)
+
+        self.results_text.configure(yscrollcommand=scrollbar.set)
+        self.results_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Configure grid weights
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=1)
+        main_frame.columnconfigure(1, weight=1)
+        main_frame.rowconfigure(3, weight=1)
+
+        # Bind Enter key to search
+        self.query_entry.bind('<Return>', lambda e: self.text_search())
+
+    def initialize_search_system(self):
+        """Initialize the search system"""
+        try:
+            self.update_status("🔄 Initializing search system...")
+            self.search_system = AgenticProductSearchSystem()
+
+            # Get system status
+            status = self.search_system.get_system_status()
+            status_msg = "✅ System Ready\n"
+            status_msg += f"📊 Database: {'✅' if status['database_connected'] else '❌'}\n"
+            status_msg += f"🎤 Voice: {'✅' if status['voice_available'] else '❌'}\n"
+            status_msg += f"📸 Image: {'✅' if status['image_available'] else '❌'}"
+
+            self.update_status(status_msg)
+
+        except Exception as e:
+            error_msg = f"❌ Initialization failed: {str(e)}"
+            self.update_status(error_msg)
+            messagebox.showerror("Initialization Error", str(e))
+
+    def update_status(self, message: str):
+        """Update status display"""
+        self.status_text.delete(1.0, tk.END)
+        self.status_text.insert(1.0, message)
+        self.root.update_idletasks()
+
+    def update_results(self, result: Dict[str, Any]):
+        """Update results display"""
+        self.results_text.delete(1.0, tk.END)
+
+        if result.get("success"):
+            response = result.get("response", "No response")
+            self.results_text.insert(tk.END, response)
+
+            # Add explanations if available
+            explanations = result.get("explanations", [])
+            if explanations:
+                self.results_text.insert(tk.END, "\n\n🔍 **Process Explanation:**\n")
+                for explanation in explanations:
+                    self.results_text.insert(tk.END, f"• {explanation}\n")
+
+            # Add suggestions if available
+            suggestions = result.get("suggestions", [])
+            if suggestions:
+                self.results_text.insert(tk.END, "\n💡 **Suggestions:**\n")
+                for suggestion in suggestions:
+                    self.results_text.insert(tk.END, f"• {suggestion}\n")
+
+        else:
+            error_msg = result.get("error", "Unknown error")
+            self.results_text.insert(tk.END, f"❌ Error: {error_msg}")
+
+        # Scroll to top
+        self.results_text.see(1.0)
+
+    def text_search(self):
+        """Perform text search"""
+        if not self.search_system:
+            messagebox.showerror("Error", "Search system not initialized")
+            return
+
+        query = self.query_var.get().strip()
+        if not query:
+            messagebox.showwarning("Warning", "Please enter a search query")
+            return
+
+        self.update_status(f"🔍 Searching for: {query}")
+        self.search_btn.configure(state="disabled")
+
+        try:
+            result = self.search_system.search(query=query, search_type="text")
+            self.update_results(result)
+
+            response_time = result.get("response_time", 0)
+            self.update_status(f"✅ Search completed in {response_time:.2f}s")
+
+        except Exception as e:
+            error_msg = f"Search failed: {str(e)}"
+            self.update_status(f"❌ {error_msg}")
+            messagebox.showerror("Search Error", error_msg)
+        finally:
+            self.search_btn.configure(state="normal")
+
+    def voice_search(self):
+        """Perform voice search"""
+        if not self.search_system:
+            messagebox.showerror("Error", "Search system not initialized")
+            return
+
+        self.update_status("🎤 Starting voice search...")
+        self.voice_btn.configure(state="disabled")
+
+        try:
+            result = self.search_system.search_by_voice(duration=3)
+            self.update_results(result)
+
+            if result.get("success"):
+                response_time = result.get("response_time", 0)
+                self.update_status(f"✅ Voice search completed in {response_time:.2f}s")
+            else:
+                self.update_status("❌ Voice search failed")
+
+        except Exception as e:
+            error_msg = f"Voice search failed: {str(e)}"
+            self.update_status(f"❌ {error_msg}")
+            messagebox.showerror("Voice Search Error", error_msg)
+        finally:
+            self.voice_btn.configure(state="normal")
+
+    def image_search(self):
+        """Perform image search"""
+        if not self.search_system:
+            messagebox.showerror("Error", "Search system not initialized")
+            return
+
+        # File dialog for image selection
+        file_types = [
+            ("Image files", "*.jpg *.jpeg *.png *.bmp *.gif"),
+            ("All files", "*.*")
+        ]
+
+        image_path = filedialog.askopenfilename(
+            title="Select Product Image",
+            filetypes=file_types
+        )
+
+        if not image_path:
+            return
+
+        self.update_status(f"📸 Analyzing image: {Path(image_path).name}")
+        self.image_btn.configure(state="disabled")
+
+        try:
+            result = self.search_system.search_by_image(image_path)
+            self.update_results(result)
+
+            if result.get("success"):
+                response_time = result.get("response_time", 0)
+                self.update_status(f"✅ Image search completed in {response_time:.2f}s")
+            else:
+                self.update_status("❌ Image search failed")
+
+        except Exception as e:
+            error_msg = f"Image search failed: {str(e)}"
+            self.update_status(f"❌ {error_msg}")
+            messagebox.showerror("Image Search Error", error_msg)
+        finally:
+            self.image_btn.configure(state="normal")
+
+    def clear_results(self):
+        """Clear all results and reset interface"""
+        self.results_text.delete(1.0, tk.END)
+        self.query_var.set("")
+        self.update_status("🗑️ Results cleared")
+
+    def run(self):
+        """Start the GUI application"""
+        try:
+            self.root.mainloop()
+        except KeyboardInterrupt:
+            print("\n👋 Goodbye!")
+        except Exception as e:
+            print(f"❌ GUI Error: {e}")
+
+
+# CLI Interface
+class ProductSearchCLI:
+    """Command-line interface for the product search system"""
+
+    def __init__(self):
+        self.search_system = None
+        self.initialize_system()
+
+    def initialize_system(self):
+        """Initialize the search system"""
+        try:
+            print("🤖 Advanced Agentic Product Search System")
+            print("=" * 50)
+            print("🔄 Initializing system...")
+
+            self.search_system = AgenticProductSearchSystem()
+
+            status = self.search_system.get_system_status()
+            print(f"✅ System ready!")
+            print(f"📊 Database: {'✅' if status['database_connected'] else '❌'}")
+            print(f"🎤 Voice: {'✅' if status['voice_available'] else '❌'}")
+            print(f"📸 Image: {'✅' if status['image_available'] else '❌'}")
+            print()
+
+        except Exception as e:
+            print(f"❌ Initialization failed: {e}")
+            sys.exit(1)
+
+    def print_help(self):
+        """Print help information"""
+        print("""
+🤖 **Available Commands:**
+• search <query>       - Text search
+• voice                - Voice search (if available)
+• image <path>         - Image search
+• status               - Show system status
+• stats                - Show statistics
+• help                 - Show this help
+• quit/exit            - Exit program
+
+📝 **Example queries:**
+• search gaming laptop under $1000
+• search best wireless headphones
+• image /path/to/product.jpg
+""")
+
+    def run(self):
+        """Run the CLI interface"""
+        self.print_help()
+
+        while True:
+            try:
+                user_input = input("\n🔍 Enter command: ").strip()
+
+                if not user_input:
+                    continue
+
+                parts = user_input.split(None, 1)
+                command = parts[0].lower()
+
+                if command in ['quit', 'exit', 'q']:
+                    print("👋 Goodbye!")
+                    break
+
+                elif command == 'help':
+                    self.print_help()
+
+                elif command == 'status':
+                    self.show_status()
+
+                elif command == 'stats':
+                    self.show_stats()
+
+                elif command == 'search':
+                    if len(parts) > 1:
+                        self.text_search(parts[1])
+                    else:
+                        print("❌ Please provide a search query")
+
+                elif command == 'voice':
+                    self.voice_search()
+
+                elif command == 'image':
+                    if len(parts) > 1:
+                        self.image_search(parts[1])
+                    else:
+                        print("❌ Please provide an image path")
+
+                else:
+                    # Treat as direct search query
+                    self.text_search(user_input)
+
+            except KeyboardInterrupt:
+                print("\n👋 Goodbye!")
+                break
+            except Exception as e:
+                print(f"❌ Error: {e}")
+
+    def text_search(self, query: str):
+        """Perform text search"""
+        print(f"🔍 Searching for: {query}")
+
+        try:
+            result = self.search_system.search(query=query, search_type="text")
+            self.print_result(result)
+
+        except Exception as e:
+            print(f"❌ Search failed: {e}")
+
+    def voice_search(self):
+        """Perform voice search"""
+        print("🎤 Starting voice search...")
+
+        try:
+            result = self.search_system.search_by_voice(duration=3)
+            self.print_result(result)
+
+        except Exception as e:
+            print(f"❌ Voice search failed: {e}")
+
+    def image_search(self, image_path: str):
+        """Perform image search"""
+        print(f"📸 Analyzing image: {image_path}")
+
+        try:
+            result = self.search_system.search_by_image(image_path)
+            self.print_result(result)
+
+        except Exception as e:
+            print(f"❌ Image search failed: {e}")
+
+    def print_result(self, result: Dict[str, Any]):
+        """Print search result"""
+        if result.get("success"):
+            response = result.get("response", "")
+            print(f"\n{response}")
+
+            # Print explanations
+            explanations = result.get("explanations", [])
+            if explanations:
+                print(f"\n🔍 **Process Explanation:**")
+                for explanation in explanations:
+                    print(f"  • {explanation}")
+
+            # Print timing info
+            response_time = result.get("response_time", 0)
+            print(f"\n⏱️  Response time: {response_time:.2f}s")
+
+        else:
+            error = result.get("error", "Unknown error")
+            print(f"❌ {error}")
+
+    def show_status(self):
+        """Show system status"""
+        try:
+            status = self.search_system.get_system_status()
+            print("\n📊 **System Status:**")
+            print(f"  • Database: {'✅ Connected' if status['database_connected'] else '❌ Not available'}")
+            print(f"  • Voice: {'✅ Available' if status['voice_available'] else '❌ Not available'}")
+            print(f"  • Image: {'✅ Available' if status['image_available'] else '❌ Not available'}")
+            print(f"  • Session ID: {status['session_id']}")
+
+        except Exception as e:
+            print(f"❌ Status check failed: {e}")
+
+    def show_stats(self):
+        """Show system statistics"""
+        try:
+            db_info = self.search_system.get_database_info()
+            stats = db_info.get("system_stats", {})
+
+            print("\n📈 **System Statistics:**")
+            print(f"  • Total queries: {stats.get('total_queries', 0)}")
+            print(f"  • Successful queries: {stats.get('successful_queries', 0)}")
+            print(f"  • Average response time: {stats.get('average_response_time', 0):.2f}s")
+            print(f"  • User satisfaction: {stats.get('user_satisfaction', 0):.1f}/5.0")
+
+            if "total_products" in db_info:
+                print(f"  • Database products: {db_info['total_products']:,}")
+
+        except Exception as e:
+            print(f"❌ Stats retrieval failed: {e}")
+
+
+# Main execution
+def main():
+    """Main function to run the application"""
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Advanced Agentic Product Search System")
+    parser.add_argument("--cli", action="store_true", help="Run in CLI mode")
+    parser.add_argument("--db-path", help="Database path")
+    parser.add_argument("--collection", default="products", help="Collection name")
+    parser.add_argument("--model", default="all-MiniLM-L6-v2", help="Embedding model")
+
+    args = parser.parse_args()
+
+    # Configuration
+    config = SystemConfig()
+    if args.db_path:
+        config.database_path = args.db_path
+    if args.collection:
+        config.collection_name = args.collection
+    if args.model:
+        config.model_name = args.model
+
+    try:
+        if args.cli or not GUI_AVAILABLE:
+            # Run CLI interface
+            cli = ProductSearchCLI()
+            cli.run()
+        else:
+            # Run GUI interface
+            gui = ProductSearchGUI()
+            gui.run()
+
+    except Exception as e:
+        print(f"❌ Application failed to start: {e}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
