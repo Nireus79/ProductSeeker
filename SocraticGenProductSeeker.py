@@ -1055,190 +1055,187 @@ class AgenticProductSearchSystem:
 
         logger.info(f"📝 Feedback received: {rating}/5 stars")
 
-.execute)
-workflow.add_node("response_formatting", self.response_agent.execute)
-
-return workflow.compile()
 
 
-def get_user_profile(self, user_id: str = None) -> UserProfile:
-    """Get or create user profile"""
-    user_id = user_id or self.current_user
-    if user_id not in self.user_profiles:
-        self.user_profiles[user_id] = UserProfile(user_id=user_id)
-    return self.user_profiles[user_id]
+
+    def get_user_profile(self, user_id: str = None) -> UserProfile:
+        """Get or create user profile"""
+        user_id = user_id or self.current_user
+        if user_id not in self.user_profiles:
+            self.user_profiles[user_id] = UserProfile(user_id=user_id)
+        return self.user_profiles[user_id]
 
 
-def search(self,
-           query: str = "",
-           search_type: Literal["text", "voice", "image", "hybrid"] = "text",
-           image_path: Optional[str] = None,
-           audio_data: Optional[bytes] = None,
-           user_id: str = None) -> Dict[str, Any]:
-    """
-    Main search method with agentic processing
-    """
-    start_time = time.time()
+    def search(self,
+               query: str = "",
+               search_type: Literal["text", "voice", "image", "hybrid"] = "text",
+               image_path: Optional[str] = None,
+               audio_data: Optional[bytes] = None,
+               user_id: str = None) -> Dict[str, Any]:
+        """
+        Main search method with agentic processing
+        """
+        start_time = time.time()
 
-    try:
-        # Initialize state
-        state = AgenticSearchState(
-            messages=[HumanMessage(content=query)],
-            original_query=query,
-            current_query=query,
-            search_type=search_type,
-            input_data={},
-            processed_input={},
-            search_results=[],
-            user_intent={},
-            user_profile=self.get_user_profile(user_id),
-            performance_metrics={},
-            explanations=[],
-            suggestions=[],
-            refinement_count=0,
-            session_id=self.session_id,
-            timestamp=datetime.now()
-        )
+        try:
+            # Initialize state
+            state = AgenticSearchState(
+                messages=[HumanMessage(content=query)],
+                original_query=query,
+                current_query=query,
+                search_type=search_type,
+                input_data={},
+                processed_input={},
+                search_results=[],
+                user_intent={},
+                user_profile=self.get_user_profile(user_id),
+                performance_metrics={},
+                explanations=[],
+                suggestions=[],
+                refinement_count=0,
+                session_id=self.session_id,
+                timestamp=datetime.now()
+            )
 
-        # Add input data based on search type
-        if image_path:
-            state["input_data"]["image_path"] = image_path
-        if audio_data:
-            state["input_data"]["audio_data"] = audio_data
+            # Add input data based on search type
+            if image_path:
+                state["input_data"]["image_path"] = image_path
+            if audio_data:
+                state["input_data"]["audio_data"] = audio_data
 
-        # Execute agentic workflow
-        final_state = self.graph.invoke(state)
+            # Execute agentic workflow
+            final_state = self.graph.invoke(state)
 
-        # Extract response
-        response_content = ""
-        if final_state.get("messages"):
-            last_message = final_state["messages"][-1]
-            if hasattr(last_message, 'content'):
-                response_content = last_message.content
-            else:
-                response_content = str(last_message)
+            # Extract response
+            response_content = ""
+            if final_state.get("messages"):
+                last_message = final_state["messages"][-1]
+                if hasattr(last_message, 'content'):
+                    response_content = last_message.content
+                else:
+                    response_content = str(last_message)
 
-        # Update system stats
-        processing_time = time.time() - start_time
-        self.system_stats["total_queries"] += 1
-        if final_state["search_results"]:
-            self.system_stats["successful_queries"] += 1
+            # Update system stats
+            processing_time = time.time() - start_time
+            self.system_stats["total_queries"] += 1
+            if final_state["search_results"]:
+                self.system_stats["successful_queries"] += 1
 
-        # Update average response time
-        current_avg = self.system_stats["average_response_time"]
-        total_queries = self.system_stats["total_queries"]
-        self.system_stats["average_response_time"] = (
-                (current_avg * (total_queries - 1) + processing_time) / total_queries
-        )
+            # Update average response time
+            current_avg = self.system_stats["average_response_time"]
+            total_queries = self.system_stats["total_queries"]
+            self.system_stats["average_response_time"] = (
+                    (current_avg * (total_queries - 1) + processing_time) / total_queries
+            )
 
-        return {
-            "response": response_content,
-            "results": final_state["search_results"],
-            "explanations": final_state["explanations"],
-            "suggestions": final_state["suggestions"],
-            "user_intent": final_state["user_intent"],
-            "processing_time": processing_time,
-            "search_type": search_type,
-            "success": len(final_state["search_results"]) > 0
+            return {
+                "response": response_content,
+                "results": final_state["search_results"],
+                "explanations": final_state["explanations"],
+                "suggestions": final_state["suggestions"],
+                "user_intent": final_state["user_intent"],
+                "processing_time": processing_time,
+                "search_type": search_type,
+                "success": len(final_state["search_results"]) > 0
+            }
+
+        except Exception as e:
+            logger.error(f"Search execution failed: {e}")
+            return {
+                "response": f"❌ Search failed: {str(e)}",
+                "results": [],
+                "explanations": [f"Error: {str(e)}"],
+                "suggestions": ["Try a different search term", "Check your input format"],
+                "user_intent": {},
+                "processing_time": time.time() - start_time,
+                "search_type": search_type,
+                "success": False
+            }
+
+
+    def voice_search(self, user_id: str = None) -> Dict[str, Any]:
+        """Perform voice-based search"""
+        if not self.voice_agent.available:
+            return {
+                "response": "🎤 Voice search is not available on this system",
+                "results": [],
+                "success": False
+            }
+
+        try:
+            logger.info("🎤 Starting voice search...")
+            # In a real implementation, this would capture audio
+            # For demo purposes, we'll use a mock voice input
+            mock_query = "gaming laptop under 1000 dollars"
+            return self.search(query=mock_query, search_type="voice", user_id=user_id)
+        except Exception as e:
+            return {
+                "response": f"🎤 Voice search failed: {str(e)}",
+                "results": [],
+                "success": False
+            }
+
+
+    def image_search(self, image_path: str, user_id: str = None) -> Dict[str, Any]:
+        """Perform image-based search"""
+        if not self.image_agent.available:
+            return {
+                "response": "📸 Image search is not available on this system",
+                "results": [],
+                "success": False
+            }
+
+        if not Path(image_path).exists():
+            return {
+                "response": f"📸 Image file not found: {image_path}",
+                "results": [],
+                "success": False
+            }
+
+        return self.search(query="", search_type="image", image_path=image_path, user_id=user_id)
+
+
+    def get_system_stats(self) -> Dict[str, Any]:
+        """Get comprehensive system statistics"""
+        stats = self.system_stats.copy()
+        stats.update({
+            "database_stats": self.db.get_database_stats(),
+            "agent_performance": {
+                agent.name: agent.get_stats() for agent in [
+                    self.voice_agent, self.image_agent, self.intent_agent,
+                    self.search_agent, self.recommendation_agent, self.response_agent
+                ]
+            },
+            "active_users": len(self.user_profiles),
+            "session_id": self.session_id
+        })
+        return stats
+
+
+    def provide_feedback(self, query: str, rating: int, comments: str = "", user_id: str = None):
+        """Collect user feedback for learning"""
+        user_profile = self.get_user_profile(user_id)
+
+        feedback = {
+            "query": query,
+            "rating": rating,
+            "comments": comments,
+            "timestamp": datetime.now(),
+            "user_id": user_id or self.current_user
         }
 
-    except Exception as e:
-        logger.error(f"Search execution failed: {e}")
-        return {
-            "response": f"❌ Search failed: {str(e)}",
-            "results": [],
-            "explanations": [f"Error: {str(e)}"],
-            "suggestions": ["Try a different search term", "Check your input format"],
-            "user_intent": {},
-            "processing_time": time.time() - start_time,
-            "search_type": search_type,
-            "success": False
-        }
+        # Add to user profile
+        user_profile.search_history.append(feedback)
 
+        # Update system satisfaction score
+        current_satisfaction = self.system_stats["user_satisfaction"]
+        self.system_stats["user_satisfaction"] = (current_satisfaction * 0.9) + (rating * 0.1)
 
-def voice_search(self, user_id: str = None) -> Dict[str, Any]:
-    """Perform voice-based search"""
-    if not self.voice_agent.available:
-        return {
-            "response": "🎤 Voice search is not available on this system",
-            "results": [],
-            "success": False
-        }
+        # Distribute feedback to agents for learning
+        for agent in [self.intent_agent, self.search_agent, self.recommendation_agent]:
+            agent.learn_from_feedback(feedback)
 
-    try:
-        logger.info("🎤 Starting voice search...")
-        # In a real implementation, this would capture audio
-        # For demo purposes, we'll use a mock voice input
-        mock_query = "gaming laptop under 1000 dollars"
-        return self.search(query=mock_query, search_type="voice", user_id=user_id)
-    except Exception as e:
-        return {
-            "response": f"🎤 Voice search failed: {str(e)}",
-            "results": [],
-            "success": False
-        }
-
-
-def image_search(self, image_path: str, user_id: str = None) -> Dict[str, Any]:
-    """Perform image-based search"""
-    if not self.image_agent.available:
-        return {
-            "response": "📸 Image search is not available on this system",
-            "results": [],
-            "success": False
-        }
-
-    if not Path(image_path).exists():
-        return {
-            "response": f"📸 Image file not found: {image_path}",
-            "results": [],
-            "success": False
-        }
-
-    return self.search(query="", search_type="image", image_path=image_path, user_id=user_id)
-
-
-def get_system_stats(self) -> Dict[str, Any]:
-    """Get comprehensive system statistics"""
-    stats = self.system_stats.copy()
-    stats.update({
-        "database_stats": self.db.get_database_stats(),
-        "agent_performance": {
-            agent.name: agent.get_stats() for agent in [
-                self.voice_agent, self.image_agent, self.intent_agent,
-                self.search_agent, self.recommendation_agent, self.response_agent
-            ]
-        },
-        "active_users": len(self.user_profiles),
-        "session_id": self.session_id
-    })
-    return stats
-
-
-def provide_feedback(self, query: str, rating: int, comments: str = "", user_id: str = None):
-    """Collect user feedback for learning"""
-    user_profile = self.get_user_profile(user_id)
-
-    feedback = {
-        "query": query,
-        "rating": rating,
-        "comments": comments,
-        "timestamp": datetime.now(),
-        "user_id": user_id or self.current_user
-    }
-
-    # Add to user profile
-    user_profile.search_history.append(feedback)
-
-    # Update system satisfaction score
-    current_satisfaction = self.system_stats["user_satisfaction"]
-    self.system_stats["user_satisfaction"] = (current_satisfaction * 0.9) + (rating * 0.1)
-
-    # Distribute feedback to agents for learning
-    for agent in [self.intent_agent, self.search_agent, self.recommendation_agent]:
-        agent.learn_from_feedback(feedback)
-
-    logger.info(f"📝 Feedback received: {rating}/5 stars")
+        logger.info(f"📝 Feedback received: {rating}/5 stars")
 
 
 # GUI Application Class
