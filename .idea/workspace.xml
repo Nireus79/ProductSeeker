@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed7bbc7b-6aa8-485b-bbca-f48586178bf3" name="Changes" comment="SocraticGen">
+    <list default="true" id="ed7bbc7b-6aa8-485b-bbca-f48586178bf3" name="Changes" comment="Initial Launcher.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Launcher.py" beforeDir="false" afterPath="$PROJECT_DIR$/Launcher.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,7 +49,9 @@
     &quot;Python.ImageSearchBot.executor&quot;: &quot;Run&quot;,
     &quot;Python.Integrater.executor&quot;: &quot;Run&quot;,
     &quot;Python.LangGraphProductSearchSystem (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.LangGraphProductSearchSystem.executor&quot;: &quot;Run&quot;,
     &quot;Python.Launcher.executor&quot;: &quot;Run&quot;,
+    &quot;Python.SocraticGenProductSeeker.executor&quot;: &quot;Run&quot;,
     &quot;Python.langgraph_db_interface.executor&quot;: &quot;Run&quot;,
     &quot;Python.main.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
@@ -64,7 +65,7 @@
     ]
   }
 }</component>
-  <component name="RunManager" selected="Python.Launcher">
+  <component name="RunManager" selected="Python.SocraticGenProductSeeker">
     <configuration name="Integrater" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="ProductSeeker" />
       <option name="ENV_FILES" value="" />
@@ -87,6 +88,28 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="LangGraphProductSearchSystem" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ProductSeeker" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/LangGraphProductSearchSystem.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="Launcher" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="ProductSeeker" />
       <option name="ENV_FILES" value="" />
@@ -101,6 +124,28 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Launcher.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="SocraticGenProductSeeker" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ProductSeeker" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/SocraticGenProductSeeker.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -147,13 +192,17 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.main" />
       <item itemvalue="Python.Integrater" />
+      <item itemvalue="Python.LangGraphProductSearchSystem" />
       <item itemvalue="Python.Launcher" />
+      <item itemvalue="Python.SocraticGenProductSeeker" />
+      <item itemvalue="Python.main" />
       <item itemvalue="Python tests.Python tests in tst.py" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.SocraticGenProductSeeker" />
+        <item itemvalue="Python.LangGraphProductSearchSystem" />
         <item itemvalue="Python.Launcher" />
         <item itemvalue="Python tests.Python tests in tst.py" />
         <item itemvalue="Python.Integrater" />
@@ -424,7 +473,15 @@
       <option name="project" value="LOCAL" />
       <updated>1756044711336</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="Initial Launcher.">
+      <option name="closed" value="true" />
+      <created>1756046701869</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1756046701869</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -436,6 +493,7 @@
     <MESSAGE value="debug" />
     <MESSAGE value="f" />
     <MESSAGE value="SocraticGen" />
-    <option name="LAST_COMMIT_MESSAGE" value="SocraticGen" />
+    <MESSAGE value="Initial Launcher." />
+    <option name="LAST_COMMIT_MESSAGE" value="Initial Launcher." />
   </component>
 </project>
