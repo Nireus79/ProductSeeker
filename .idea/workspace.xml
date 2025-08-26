@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed7bbc7b-6aa8-485b-bbca-f48586178bf3" name="Changes" comment="Socratic SystemConfig" />
+    <list default="true" id="ed7bbc7b-6aa8-485b-bbca-f48586178bf3" name="Changes" comment="Ref" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -108,7 +108,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="Launcher" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="LangGraphProductSearchSystemLauncher" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="ProductSeeker" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -121,7 +121,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Launcher.py" />
+      <option name="SCRIPT_NAME" value="C:\Users\themi\PycharmProjects\ProductSeeker\LangGraphProductSearchSystemLauncher.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -174,7 +174,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="Python tests in tst.py" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+    <configuration name="Python tests in TestLangGraphProductSearchSystem.py" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="ProductSeeker" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -185,7 +185,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;$PROJECT_DIR$/tst.py&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/TestLangGraphProductSearchSystem.py&quot;" />
       <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method v="2" />
     </configuration>
@@ -194,15 +194,15 @@
       <item itemvalue="Python.LangGraphProductSearchSystem" />
       <item itemvalue="Python.SocraticGenProductSeeker" />
       <item itemvalue="Python.Integrater" />
-      <item itemvalue="Python.Launcher" />
-      <item itemvalue="Python tests.Python tests in tst.py" />
+      <item itemvalue="Python.LangGraphProductSearchSystemLauncher" />
+      <item itemvalue="Python tests.Python tests in TestLangGraphProductSearchSystem.py" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.SocraticGenProductSeeker" />
-        <item itemvalue="Python.Launcher" />
+        <item itemvalue="Python.LangGraphProductSearchSystemLauncher" />
         <item itemvalue="Python.LangGraphProductSearchSystem" />
-        <item itemvalue="Python tests.Python tests in tst.py" />
+        <item itemvalue="Python tests.Python tests in TestLangGraphProductSearchSystem.py" />
         <item itemvalue="Python.Integrater" />
       </list>
     </recent_temporary>
@@ -543,7 +543,23 @@
       <option name="project" value="LOCAL" />
       <updated>1756191233045</updated>
     </task>
-    <option name="localTasksCounter" value="41" />
+    <task id="LOCAL-00041" summary="Socratic read">
+      <option name="closed" value="true" />
+      <created>1756191452197</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1756191452197</updated>
+    </task>
+    <task id="LOCAL-00042" summary="Ref">
+      <option name="closed" value="true" />
+      <created>1756191623675</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1756191623675</updated>
+    </task>
+    <option name="localTasksCounter" value="43" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -558,6 +574,8 @@
     <MESSAGE value="Initial Launcher." />
     <MESSAGE value="Socratic" />
     <MESSAGE value="Socratic SystemConfig" />
-    <option name="LAST_COMMIT_MESSAGE" value="Socratic SystemConfig" />
+    <MESSAGE value="Socratic read" />
+    <MESSAGE value="Ref" />
+    <option name="LAST_COMMIT_MESSAGE" value="Ref" />
   </component>
 </project>
