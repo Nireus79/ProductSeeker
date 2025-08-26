@@ -2,7 +2,9 @@
 
 ## Overview
 
-SocraticGenProductSeeker.py is an advanced agentic product search system that provides multi-modal search capabilities with intelligent workflow management. It's an evolution of the LangGraphProductSearchSystem with enhanced features including voice input, image search, natural language processing, and personalized recommendations.
+SocraticGenProductSeeker.py is an advanced agentic product search system that provides multi-modal search capabilities
+with intelligent workflow management, with enhanced features including voice input, image search,
+ natural language processing, and personalized recommendations.
 
 ## Table of Contents
 
