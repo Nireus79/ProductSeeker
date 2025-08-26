@@ -568,7 +568,7 @@ def run_integration_test():
         print("✓ Testing configuration...")
         assert hasattr(LangGraphProductSearchSystemLauncher, 'SCRAPER_OUTPUT')
         assert hasattr(LangGraphProductSearchSystemLauncher, 'DATABASE_PATH')
-        assert hasattr(Launcher, 'COLLECTION_NAME')
+        assert hasattr(LangGraphProductSearchSystemLauncher, 'COLLECTION_NAME')
         print("✓ Configuration constants found")
 
         # Test function availability
@@ -582,7 +582,7 @@ def run_integration_test():
         ]
 
         for func_name in functions_to_test:
-            if hasattr(Launcher, func_name):
+            if hasattr(LangGraphProductSearchSystemLauncher, func_name):
                 print(f"✓ Function '{func_name}' available")
             else:
                 print(f"✗ Function '{func_name}' missing")

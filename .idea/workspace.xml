@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ed7bbc7b-6aa8-485b-bbca-f48586178bf3" name="Changes" comment="Soc Test">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TestLangGraphProductSearchSystem.py" beforeDir="false" afterPath="$PROJECT_DIR$/TestLangGraphProductSearchSystem.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,6 +45,8 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Python tests.Python tests in TestLangGraphProductSearchSystem.py.executor": "Run",
+    "Python tests.Python tests in TestSocraticGenProductSeeker.py.executor": "Run",
     "Python tests.Python tests in tst.py.executor": "Run",
     "Python.ImageSearchBot.executor": "Run",
     "Python.Integrater.executor": "Run",
@@ -66,29 +68,7 @@
     ]
   }
 }]]></component>
-  <component name="RunManager" selected="Python.LangGraphProductSearchSystemLauncher">
-    <configuration name="Integrater" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="ProductSeeker" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Integrater.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="Python tests.Python tests in TestLangGraphProductSearchSystem.py">
     <configuration name="LangGraphProductSearchSystem" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="ProductSeeker" />
       <option name="ENV_FILES" value="" />
@@ -192,21 +172,36 @@
       <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method v="2" />
     </configuration>
+    <configuration name="Python tests in TestSocraticGenProductSeeker.py" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="ProductSeeker" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/TestSocraticGenProductSeeker.py&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
     <list>
       <item itemvalue="Python.main" />
       <item itemvalue="Python.LangGraphProductSearchSystem" />
       <item itemvalue="Python.SocraticGenProductSeeker" />
-      <item itemvalue="Python.Integrater" />
       <item itemvalue="Python.LangGraphProductSearchSystemLauncher" />
+      <item itemvalue="Python tests.Python tests in TestSocraticGenProductSeeker.py" />
       <item itemvalue="Python tests.Python tests in TestLangGraphProductSearchSystem.py" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python tests.Python tests in TestLangGraphProductSearchSystem.py" />
+        <item itemvalue="Python tests.Python tests in TestSocraticGenProductSeeker.py" />
         <item itemvalue="Python.LangGraphProductSearchSystemLauncher" />
         <item itemvalue="Python.SocraticGenProductSeeker" />
         <item itemvalue="Python.LangGraphProductSearchSystem" />
-        <item itemvalue="Python tests.Python tests in TestLangGraphProductSearchSystem.py" />
-        <item itemvalue="Python.Integrater" />
       </list>
     </recent_temporary>
   </component>
@@ -586,7 +581,15 @@
       <option name="project" value="LOCAL" />
       <updated>1756191999374</updated>
     </task>
-    <option name="localTasksCounter" value="46" />
+    <task id="LOCAL-00046" summary="Soc Test">
+      <option name="closed" value="true" />
+      <created>1756195021587</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1756195021587</updated>
+    </task>
+    <option name="localTasksCounter" value="47" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
