@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ed7bbc7b-6aa8-485b-bbca-f48586178bf3" name="Changes" comment="Soc Test">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TestLangGraphProductSearchSystem.py" beforeDir="false" afterPath="$PROJECT_DIR$/TestLangGraphProductSearchSystem.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -43,31 +44,31 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python tests.Python tests in TestLangGraphProductSearchSystem.py.executor": "Run",
-    "Python tests.Python tests in TestSocraticGenProductSeeker.py.executor": "Run",
-    "Python tests.Python tests in tst.py.executor": "Run",
-    "Python.ImageSearchBot.executor": "Run",
-    "Python.Integrater.executor": "Run",
-    "Python.LangGraphProductSearchSystem (1).executor": "Run",
-    "Python.LangGraphProductSearchSystem.executor": "Run",
-    "Python.LangGraphProductSearchSystemLauncher.executor": "Run",
-    "Python.Launcher.executor": "Run",
-    "Python.SocraticGenProductSeeker.executor": "Run",
-    "Python.langgraph_db_interface.executor": "Run",
-    "Python.main.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python tests.Python tests in TestLangGraphProductSearchSystem.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in TestSocraticGenProductSeeker.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in tst.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python.ImageSearchBot.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Integrater.executor&quot;: &quot;Run&quot;,
+    &quot;Python.LangGraphProductSearchSystem (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.LangGraphProductSearchSystem.executor&quot;: &quot;Run&quot;,
+    &quot;Python.LangGraphProductSearchSystemLauncher.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Launcher.executor&quot;: &quot;Run&quot;,
+    &quot;Python.SocraticGenProductSeeker.executor&quot;: &quot;Run&quot;,
+    &quot;Python.langgraph_db_interface.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   },
-  "keyToStringList": {
-    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
-      "Python"
+  &quot;keyToStringList&quot;: {
+    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
+      &quot;Python&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Python tests.Python tests in TestLangGraphProductSearchSystem.py">
     <configuration name="LangGraphProductSearchSystem" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="ProductSeeker" />
@@ -589,7 +590,15 @@
       <option name="project" value="LOCAL" />
       <updated>1756195021587</updated>
     </task>
-    <option name="localTasksCounter" value="47" />
+    <task id="LOCAL-00047" summary="Soc Test">
+      <option name="closed" value="true" />
+      <created>1756195597565</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1756195597565</updated>
+    </task>
+    <option name="localTasksCounter" value="48" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

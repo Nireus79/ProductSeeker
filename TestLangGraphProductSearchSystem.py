@@ -1,904 +1,791 @@
 #!/usr/bin/env python3
 """
-Comprehensive Test Suite for Product Search System Launcher
-Tests all components: scraper, database, LangGraph system, and image bot
+Comprehensive Test Suite for LangGraphProductSearchSystem
+
+This test script includes:
+- Unit tests for individual components
+- Integration tests for the full workflow
+- Performance benchmarks
+- Mock data generation for testing
+- Error handling validation
 """
 
 import unittest
-import logging
-import sys
-import os
+import asyncio
+import time
+import json
 import tempfile
 import shutil
-import subprocess
-import time
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
-from io import StringIO
+from typing import Dict, List, Any
+import logging
 
 # Configure logging for tests
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-"""Test Coverage
-1. Unit Tests
-
-Environment Setup Tests: Verify dependency checking and module imports
-Scraper Functionality: Test successful scraping, failures, and exception handling
-LangGraph System: Test search functionality, query processing, and error handling
-Image Bot Tests: Test both Streamlit and console interfaces
-Database Operations: Test status checking, empty database handling, and connection errors
-Main Function: Test command-line argument processing and workflow orchestration
-
-2. Integration Tests
-
-Full Setup Workflow: Test the complete full-setup command sequence
-Component Interaction: Verify that all modules work together correctly
-Error Propagation: Test how errors cascade through the system
-
-3. Error Handling Tests
-
-Invalid Commands: Test argparse error handling
-Empty Database Scenarios: Test behavior when database is not ready
-Exception Recovery: Test graceful handling of various failure modes
-
-Key Features
-Mocking Strategy
-
-Uses unittest.mock to isolate components and avoid external dependencies
-Mocks database operations, file I/O, and network calls
-Allows testing without actually running scrapers or databases
-
-Comprehensive Reporting
-
-Detailed test results with success rates
-Separate integration and unit test reporting
-Manual testing checklist for final verification
-
-Realistic Test Scenarios
-
-Tests actual command-line usage patterns
-Simulates real-world failure conditions
-Validates configuration and setup requirements
-
-Usage
-Run the test suite with:
-bashpython test_launcher.py
-The script will:
-
-✅ Run integration tests to verify component availability
-🧪 Execute comprehensive unit tests
-📊 Generate detailed test reports
-📋 Provide a manual testing checklist
-
-Test Structure
-The tests are organized into logical groups:
-
-TestEnvironmentSetup - Environment and dependency tests
-TestScraperFunctionality - Web scraping tests
-TestLangGraphSystem - AI search system tests
-TestImageBot - Image search interface tests
-TestDatabaseOperations - Database interaction tests
-TestMainFunction - Command-line interface tests
-TestIntegrationScenarios - End-to-end workflow tests
-TestErrorHandling - Error condition and edge case tests"""
+# Import the classes to test
+try:
+    from LangGraphProductSearchSystem import (
+        LangGraphProductSearcher,
+        SearchConfig,
+        ProductSearchState
+    )
+    from Vector import ProductSeekerVectorDB
+    from Integrater import IntegratedProductScraper
+except ImportError as e:
+    logger.error(f"Import error: {e}")
+    logger.info("Creating mock classes for testing...")
 
 
-class TestProductSearchSystemLauncher(unittest.TestCase):
-    """Main test class for the Product Search System"""
+# Create mock classes if imports fail
+class MockProductSeekerVectorDB:
+        def __init__(self, db_path, collection_name, model_name):
+            self.db_path = db_path
+            self.collection_name = collection_name
+            self.model_name = model_name
 
-    @classmethod
-    def setUpClass(cls):
-        """Set up test environment"""
-        cls.test_dir = tempfile.mkdtemp()
-        cls.test_db_path = os.path.join(cls.test_dir, "test_db")
-        cls.test_scraper_output = os.path.join(cls.test_dir, "test_scraper")
-        cls.test_collection = "test_collection"
-        cls.test_model = "clip-ViT-B-32"
+        def search_by_text(self, query, n_results=10):
+            return {
+                'results': [
+                    {
+                        'id': f'product_{i}',
+                        'similarity': 0.8 - (i * 0.1),
+                        'metadata': {
+                            'title': f'Test Product {i}',
+                            'price': f'${100 + i * 10}',
+                            'category': 'Electronics',
+                            'brand': f'Brand{i}',
+                            'description': f'Description for test product {i}'
+                        }
+                    }
+                    for i in range(min(n_results, 5))
+                ]
+            }
 
-        # Create test directories
-        os.makedirs(cls.test_db_path, exist_ok=True)
-        os.makedirs(cls.test_scraper_output, exist_ok=True)
+        def search_by_image(self, image_path, n_results=10):
+            return self.search_by_text("image search", n_results)
 
-        print(f"Test environment created at: {cls.test_dir}")
+        def get_database_stats(self):
+            return {
+                'total_products': 1000,
+                'collections': ['ecommerce_test'],
+                'model': self.model_name
+            }
 
-    @classmethod
-    def tearDownClass(cls):
-        """Clean up test environment"""
-        try:
-            shutil.rmtree(cls.test_dir)
-            print("Test environment cleaned up")
-        except Exception as e:
-            print(f"Warning: Failed to clean up test directory: {e}")
+
+class MockIntegratedProductScraper:
+    pass
+
+
+class TestSearchConfig(unittest.TestCase):
+    """Test the SearchConfig dataclass"""
+
+    def test_default_config(self):
+        """Test default configuration values"""
+        config = SearchConfig()
+
+        self.assertEqual(config.max_results, 15)
+        self.assertEqual(config.min_similarity_threshold, 0.5)
+        self.assertEqual(config.max_refinements, 2)
+        self.assertTrue(config.enable_caching)
+        self.assertEqual(config.cache_ttl, 300)
+        self.assertTrue(config.enable_parallel_search)
+        self.assertEqual(config.search_timeout, 30)
+
+    def test_custom_config(self):
+        """Test custom configuration values"""
+        config = SearchConfig(
+            max_results=20,
+            min_similarity_threshold=0.7,
+            max_refinements=3,
+            enable_caching=False,
+            cache_ttl=600,
+            enable_parallel_search=False,
+            search_timeout=60
+        )
+
+        self.assertEqual(config.max_results, 20)
+        self.assertEqual(config.min_similarity_threshold, 0.7)
+        self.assertEqual(config.max_refinements, 3)
+        self.assertFalse(config.enable_caching)
+        self.assertEqual(config.cache_ttl, 600)
+        self.assertFalse(config.enable_parallel_search)
+        self.assertEqual(config.search_timeout, 60)
+
+
+class TestLangGraphProductSearcher(unittest.TestCase):
+    """Test the main LangGraphProductSearcher class"""
 
     def setUp(self):
-        """Set up each test"""
-        self.launcher_path = "LangGraphProductSearchSystemLauncher.py"
-        self.original_stdout = sys.stdout
-        self.original_stderr = sys.stderr
-        self.captured_output = StringIO()
+        """Set up test fixtures"""
+        self.test_db_path = "test_db"
+        self.test_collection = "test_collection"
+        self.test_model = "test_model"
 
-    def tearDown(self):
-        """Clean up after each test"""
-        sys.stdout = self.original_stdout
-        sys.stderr = self.original_stderr
+        # Mock the vector database
+        with patch('LangGraphProductSearchSystem.ProductSeekerVectorDB', MockProductSeekerVectorDB):
+            self.searcher = LangGraphProductSearcher(
+                db_path=self.test_db_path,
+                collection_name=self.test_collection,
+                model_name=self.test_model
+            )
 
+    def test_initialization(self):
+        """Test proper initialization"""
+        self.assertIsNotNone(self.searcher)
+        self.assertIsNotNone(self.searcher.config)
+        self.assertIsNotNone(self.searcher.graph)
+        self.assertEqual(self.searcher._performance_stats["total_searches"], 0)
 
-class TestEnvironmentSetup(TestProductSearchSystemLauncher):
-    """Test environment setup and dependencies"""
+    def test_preprocess_query(self):
+        """Test query preprocessing"""
+        test_cases = [
+            ("gaming laptop", "gaming laptop"),
+            ("THE best gaming laptop", "best gaming laptop"),
+            ("a great smartphone with camera", "great smartphone camera"),
+            ("", ""),
+            ("   wireless headphones   ", "wireless headphones")
+        ]
 
-    @patch('Launcher.logger')
-    def test_setup_environment_success(self, mock_logger):
-        """Test successful environment setup"""
-        with patch('builtins.__import__') as mock_import:
-            mock_import.return_value = Mock()
+        for input_query, expected in test_cases:
+            result = self.searcher._preprocess_query(input_query)
+            self.assertEqual(result, expected, f"Failed for input: '{input_query}'")
 
-            # Import the function
-            sys.path.insert(0, '.')
-            from LangGraphProductSearchSystemLauncher import setup_environment
+    def test_detect_search_type(self):
+        """Test search type detection"""
+        test_cases = [
+            ("gaming laptop", "text"),
+            ("wireless headphones", "text"),
+            ("similar to this phone", "hybrid"),
+            ("looks like this design", "hybrid"),
+            ("", "text")
+        ]
 
-            result = setup_environment()
-            self.assertTrue(result)
+        for query, expected_type in test_cases:
+            result = self.searcher._detect_search_type(query)
+            self.assertEqual(result, expected_type, f"Failed for query: '{query}'")
 
-    @patch('Launcher.logger')
-    def test_setup_environment_missing_modules(self, mock_logger):
-        """Test environment setup with missing modules"""
+    def test_cache_key_generation(self):
+        """Test cache key generation"""
+        test_cases = [
+            ("Gaming Laptop", "text", "text:gaming laptop"),
+            ("WIRELESS HEADPHONES", "image", "image:wireless headphones"),
+            ("  Mixed Case Query  ", "hybrid", "hybrid:mixed case query")
+        ]
 
-        def mock_import_side_effect(name):
-            if name in ['Integrater', 'Vector']:
-                raise ImportError(f"No module named '{name}'")
-            return Mock()
+        for query, search_type, expected_key in test_cases:
+            result = self.searcher._generate_cache_key(query, search_type)
+            self.assertEqual(result, expected_key)
 
-        with patch('builtins.__import__', side_effect=mock_import_side_effect):
-            sys.path.insert(0, '.')
-            from LangGraphProductSearchSystemLauncher import setup_environment
+    def test_merge_results(self):
+        """Test result merging functionality"""
+        text_results = [
+            {'id': '1', 'metadata': {'title': 'Product 1'}, 'similarity': 0.9},
+            {'id': '2', 'metadata': {'title': 'Product 2'}, 'similarity': 0.8}
+        ]
 
-            result = setup_environment()
-            self.assertFalse(result)
-            mock_logger.error.assert_called()
+        image_results = [
+            {'id': '2', 'metadata': {'title': 'Product 2'}, 'similarity': 0.7},  # Duplicate
+            {'id': '3', 'metadata': {'title': 'Product 3'}, 'similarity': 0.6}
+        ]
 
+        merged = self.searcher._merge_results(text_results, image_results)
 
-class TestScraperFunctionality(TestProductSearchSystemLauncher):
-    """Test scraper functionality"""
+        self.assertEqual(len(merged), 3)  # Should deduplicate
+        self.assertEqual(merged[0]['id'], '1')  # Text results should be prioritized
+        self.assertEqual(merged[1]['id'], '2')
+        self.assertEqual(merged[2]['id'], '3')
 
-    @patch('Launcher.IntegratedProductScraper')
-    @patch('Launcher.logger')
-    def test_run_scraper_success(self, mock_logger, mock_scraper_class):
-        """Test successful scraper run"""
-        # Mock scraper instance
-        mock_scraper = Mock()
-        mock_scraper.scrape_and_store.return_value = {
-            'status': 'completed',
-            'stored_products': 100
+    def test_enhance_result_metadata(self):
+        """Test result metadata enhancement"""
+        result = {
+            'metadata': {
+                'title': 'Test Product',
+                'price': '$199.99',
+                'category': 'Electronics'
+            },
+            'similarity': 0.85
         }
-        mock_scraper_class.return_value = mock_scraper
-
-        sys.path.insert(0, '.')
-        from LangGraphProductSearchSystemLauncher import run_scraper
-
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-            result = run_scraper()
-
-            self.assertTrue(result)
-            mock_scraper.scrape_and_store.assert_called_once()
-            output = mock_stdout.getvalue()
-            self.assertIn("Successfully scraped", output)
-
-    @patch('Launcher.IntegratedProductScraper')
-    @patch('Launcher.logger')
-    def test_run_scraper_failure(self, mock_logger, mock_scraper_class):
-        """Test scraper failure handling"""
-        mock_scraper = Mock()
-        mock_scraper.scrape_and_store.return_value = {
-            'status': 'failed',
-            'error': 'Connection timeout'
-        }
-        mock_scraper_class.return_value = mock_scraper
-
-        sys.path.insert(0, '.')
-        from LangGraphProductSearchSystemLauncher import run_scraper
-
-        with patch('sys.stdout', new_callable=StringIO):
-            result = run_scraper()
-
-            self.assertFalse(result)
-
-    @patch('Launcher.IntegratedProductScraper')
-    @patch('Launcher.logger')
-    def test_run_scraper_exception(self, mock_logger, mock_scraper_class):
-        """Test scraper exception handling"""
-        mock_scraper_class.side_effect = Exception("Import error")
-
-        sys.path.insert(0, '.')
-        from LangGraphProductSearchSystemLauncher import run_scraper
-
-        result = run_scraper()
-        self.assertFalse(result)
-        mock_logger.error.assert_called()
-
-
-class TestLangGraphSystem(TestProductSearchSystemLauncher):
-    """Test LangGraph system functionality"""
-
-    @patch('Launcher.LangGraphProductSearcher')
-    @patch('Launcher.logger')
-    def test_run_langgraph_system_success(self, mock_logger, mock_searcher_class):
-        """Test successful LangGraph system run"""
-        # Mock searcher instance
-        mock_searcher = Mock()
-        mock_message = Mock()
-        mock_message.content = "Found some great gaming laptops for you!"
-
-        mock_searcher.search.return_value = {
-            'success': True,
-            'results': ['result1', 'result2', 'result3'],
-            'refinement_count': 2,
-            'messages': [mock_message]
-        }
-        mock_searcher_class.return_value = mock_searcher
-
-        sys.path.insert(0, '.')
-        from LangGraphProductSearchSystemLauncher import run_langgraph_system
-
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-            result = run_langgraph_system()
-
-            self.assertTrue(result)
-            # Should be called 3 times for 3 test queries
-            self.assertEqual(mock_searcher.search.call_count, 3)
-            output = mock_stdout.getvalue()
-            self.assertIn("Found 3 results", output)
-
-    @patch('Launcher.LangGraphProductSearcher')
-    @patch('Launcher.logger')
-    def test_run_langgraph_system_search_failure(self, mock_logger, mock_searcher_class):
-        """Test LangGraph system with search failures"""
-        mock_searcher = Mock()
-        mock_searcher.search.return_value = {
-            'success': False,
-            'error': 'Search timeout'
-        }
-        mock_searcher_class.return_value = mock_searcher
-
-        sys.path.insert(0, '.')
-        from LangGraphProductSearchSystemLauncher import run_langgraph_system
-
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-            result = run_langgraph_system()
-
-            self.assertTrue(result)  # Function still returns True even if individual searches fail
-            output = mock_stdout.getvalue()
-            self.assertIn("Search failed", output)
-
-
-class TestImageBot(TestProductSearchSystemLauncher):
-    """Test image bot functionality"""
-
-    @patch('Launcher.ImageSearchBot')
-    @patch('Launcher.logger')
-    def test_run_image_bot_streamlit(self, mock_logger, mock_bot_class):
-        """Test image bot with Streamlit interface"""
-        mock_bot = Mock()
-        mock_bot.run_streamlit_app.return_value = None
-        mock_bot_class.return_value = mock_bot
-
-        sys.path.insert(0, '.')
-        from LangGraphProductSearchSystemLauncher import run_image_bot
-
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-            result = run_image_bot("streamlit")
-
-            self.assertTrue(result)
-            mock_bot.run_streamlit_app.assert_called_once()
-            output = mock_stdout.getvalue()
-            self.assertIn("Starting Streamlit", output)
-
-    @patch('Launcher.ImageSearchBot')
-    @patch('Launcher.logger')
-    def test_run_image_bot_console(self, mock_logger, mock_bot_class):
-        """Test image bot with console interface"""
-        mock_bot = Mock()
-        mock_bot.run_console_interface.return_value = None
-        mock_bot_class.return_value = mock_bot
-
-        sys.path.insert(0, '.')
-        from LangGraphProductSearchSystemLauncher import run_image_bot
-
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-            result = run_image_bot("console")
-
-            self.assertTrue(result)
-            mock_bot.run_console_interface.assert_called_once()
-            output = mock_stdout.getvalue()
-            self.assertIn("Starting console", output)
-
-    @patch('Launcher.ImageSearchBot')
-    @patch('Launcher.logger')
-    def test_run_image_bot_exception(self, mock_logger, mock_bot_class):
-        """Test image bot exception handling"""
-        mock_bot_class.side_effect = Exception("Bot initialization failed")
-
-        sys.path.insert(0, '.')
-        from LangGraphProductSearchSystemLauncher import run_image_bot
-
-        result = run_image_bot("streamlit")
-        self.assertFalse(result)
-        mock_logger.error.assert_called()
-
-
-class TestDatabaseOperations(TestProductSearchSystemLauncher):
-    """Test database operations"""
-
-    @patch('Launcher.ProductSeekerVectorDB')
-    @patch('Launcher.logger')
-    def test_check_database_status_with_data(self, mock_logger, mock_db_class):
-        """Test database status check with data"""
-        mock_db = Mock()
-        mock_db.get_database_stats.return_value = {
-            'total_products': 150,
-            'products_with_images': 120
-        }
-        mock_db_class.return_value = mock_db
-
-        sys.path.insert(0, '.')
-        from LangGraphProductSearchSystemLauncher import check_database_status
-
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-            result = check_database_status()
-
-            self.assertTrue(result)
-            output = mock_stdout.getvalue()
-            self.assertIn("Total Products: 150", output)
-            self.assertIn("Database is ready", output)
-
-    @patch('Launcher.ProductSeekerVectorDB')
-    @patch('Launcher.logger')
-    def test_check_database_status_empty(self, mock_logger, mock_db_class):
-        """Test database status check with empty database"""
-        mock_db = Mock()
-        mock_db.get_database_stats.return_value = {
-            'total_products': 0,
-            'products_with_images': 0
-        }
-        mock_db_class.return_value = mock_db
-
-        sys.path.insert(0, '.')
-        from LangGraphProductSearchSystemLauncher import check_database_status
-
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-            result = check_database_status()
-
-            self.assertFalse(result)
-            output = mock_stdout.getvalue()
-            self.assertIn("Database is empty", output)
-
-    @patch('Launcher.ProductSeekerVectorDB')
-    @patch('Launcher.logger')
-    def test_check_database_status_exception(self, mock_logger, mock_db_class):
-        """Test database status check exception handling"""
-        mock_db_class.side_effect = Exception("Database connection failed")
-
-        sys.path.insert(0, '.')
-        from LangGraphProductSearchSystemLauncher import check_database_status
-
-        result = check_database_status()
-        self.assertFalse(result)
-        mock_logger.error.assert_called()
-
-
-class TestMainFunction(TestProductSearchSystemLauncher):
-    """Test main function and command line interface"""
-
-    @patch('sys.argv', ['LangGraphProductSearchSystemLauncher.py', 'status'])
-    @patch('Launcher.check_database_status')
-    @patch('Launcher.setup_environment')
-    def test_main_status_command(self, mock_setup, mock_check_db):
-        """Test main function with status command"""
-        mock_setup.return_value = True
-        mock_check_db.return_value = True
-
-        sys.path.insert(0, '.')
-        from LangGraphProductSearchSystemLauncher import main
-
-        with patch('sys.stdout', new_callable=StringIO):
-            main()
-
-            mock_setup.assert_called_once()
-            mock_check_db.assert_called_once()
-
-    @patch('sys.argv', ['LangGraphProductSearchSystemLauncher.py', 'scrape'])
-    @patch('Launcher.run_scraper')
-    @patch('Launcher.setup_environment')
-    def test_main_scrape_command(self, mock_setup, mock_scraper):
-        """Test main function with scrape command"""
-        mock_setup.return_value = True
-        mock_scraper.return_value = True
-
-        sys.path.insert(0, '.')
-        from LangGraphProductSearchSystemLauncher import main
-
-        with patch('sys.stdout', new_callable=StringIO):
-            main()
-
-            mock_setup.assert_called_once()
-            mock_scraper.assert_called_once()
-
-    @patch('sys.argv', ['LangGraphProductSearchSystemLauncher.py', 'langgraph'])
-    @patch('Launcher.run_langgraph_system')
-    @patch('Launcher.check_database_status')
-    @patch('Launcher.setup_environment')
-    def test_main_langgraph_command(self, mock_setup, mock_check_db, mock_langgraph):
-        """Test main function with langgraph command"""
-        mock_setup.return_value = True
-        mock_check_db.return_value = True
-        mock_langgraph.return_value = True
-
-        sys.path.insert(0, '.')
-        from LangGraphProductSearchSystemLauncher import main
-
-        with patch('sys.stdout', new_callable=StringIO):
-            main()
-
-            mock_setup.assert_called_once()
-            mock_check_db.assert_called_once()
-            mock_langgraph.assert_called_once()
-
-
-class TestIntegrationScenarios(TestProductSearchSystemLauncher):
-    """Integration tests for complete workflows"""
-
-    @patch('Launcher.run_scraper')
-    @patch('Launcher.run_langgraph_system')
-    @patch('Launcher.check_database_status')
-    @patch('Launcher.setup_environment')
-    def test_full_setup_workflow(self, mock_setup, mock_check_db, mock_langgraph, mock_scraper):
-        """Test complete full-setup workflow"""
-        mock_setup.return_value = True
-        mock_scraper.return_value = True
-        mock_langgraph.return_value = True
-        mock_check_db.return_value = True
-
-        sys.path.insert(0, '.')
-
-        # Mock sys.argv for full-setup command
-        with patch('sys.argv', ['LangGraphProductSearchSystemLauncher.py', 'full-setup']):
-            from LangGraphProductSearchSystemLauncher import main
-
-            with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-                main()
-
-                output = mock_stdout.getvalue()
-                self.assertIn("Complete setup finished successfully", output)
-
-                # Verify all steps were called
-                mock_scraper.assert_called_once()
-                mock_langgraph.assert_called_once()
-                mock_check_db.assert_called()
-
-
-class TestErrorHandling(TestProductSearchSystemLauncher):
+
+        self.searcher._enhance_result_metadata(result)
+
+        self.assertEqual(result['metadata']['price_numeric'], 199.99)
+        self.assertEqual(result['metadata']['relevance_score'], 0.85)
+
+    def test_refinement_strategy(self):
+        """Test query refinement strategies"""
+        test_cases = [
+            ("gaming laptop computer", 0, "no_results", "gaming laptop"),  # Remove last word
+            ("wireless bluetooth headphones", 0, "poor", "wireless bluetooth"),  # Remove last word
+            ("smartphone", 1, "few_results", "electronics"),  # Category fallback
+            ("unknown product", 1, "poor", "unknown"),  # First word fallback
+        ]
+
+        for query, refinement_count, quality_status, expected_contains in test_cases:
+            result = self.searcher._apply_refinement_strategy(query, refinement_count, quality_status)
+            self.assertIn(expected_contains.split()[0], result.split())
+
+
+class TestSearchWorkflow(unittest.TestCase):
+    """Test the complete search workflow"""
+
+    def setUp(self):
+        """Set up test fixtures"""
+        with patch('LangGraphProductSearchSystem.ProductSeekerVectorDB', MockProductSeekerVectorDB):
+            self.searcher = LangGraphProductSearcher(
+                db_path="test_db",
+                collection_name="test_collection",
+                model_name="test_model"
+            )
+
+    def test_successful_search(self):
+        """Test successful search workflow"""
+        result = self.searcher.search("gaming laptop")
+
+        self.assertTrue(result["success"])
+        self.assertGreater(len(result["results"]), 0)
+        self.assertIn("messages", result)
+        self.assertIn("metadata", result)
+
+        # Check metadata
+        metadata = result["metadata"]
+        self.assertEqual(metadata["original_query"], "gaming laptop")
+        self.assertIn("total_time", metadata)
+        self.assertGreaterEqual(metadata["quality_score"], 0.0)
+
+    def test_empty_query_search(self):
+        """Test search with empty query"""
+        result = self.searcher.search("")
+
+        # Should still work but may return fewer/no results
+        self.assertIn("success", result)
+        self.assertIn("results", result)
+
+    def test_search_with_custom_config(self):
+        """Test search with custom configuration"""
+        custom_config = SearchConfig(
+            max_results=5,
+            min_similarity_threshold=0.8,
+            enable_caching=False
+        )
+
+        result = self.searcher.search("wireless headphones", config=custom_config)
+
+        self.assertTrue(result["success"])
+        # Results should be filtered by custom threshold
+        for result_item in result["results"]:
+            self.assertGreaterEqual(result_item.get("similarity", 0), 0.8)
+
+    def test_search_type_detection(self):
+        """Test automatic search type detection"""
+        test_cases = [
+            ("gaming laptop", "text"),
+            ("similar to this phone", "hybrid"),
+        ]
+
+        for query, expected_type in test_cases:
+            result = self.searcher.search(query, search_type="auto")
+            self.assertEqual(result["metadata"]["search_type"], expected_type)
+
+
+class TestCacheSystem(unittest.TestCase):
+    """Test the caching system"""
+
+    def setUp(self):
+        """Set up test fixtures"""
+        config = SearchConfig(enable_caching=True, cache_ttl=1)  # Short TTL for testing
+
+        with patch('LangGraphProductSearchSystem.ProductSeekerVectorDB', MockProductSeekerVectorDB):
+            self.searcher = LangGraphProductSearcher(
+                db_path="test_db",
+                collection_name="test_collection",
+                model_name="test_model",
+                config=config
+            )
+
+    def test_cache_hit_miss(self):
+        """Test cache hit and miss behavior"""
+        query = "test query"
+
+        # First search should be a cache miss
+        result1 = self.searcher.search(query)
+        self.assertEqual(result1["metadata"]["cache_status"], "miss")
+
+        # Second search should be a cache hit
+        result2 = self.searcher.search(query)
+        self.assertEqual(result2["metadata"]["cache_status"], "hit")
+
+        # Results should be identical
+        self.assertEqual(len(result1["results"]), len(result2["results"]))
+
+    def test_cache_expiration(self):
+        """Test cache expiration"""
+        query = "expiration test"
+
+        # First search
+        self.searcher.search(query)
+
+        # Wait for cache to expire
+        time.sleep(1.5)
+
+        # Search again - should be cache miss due to expiration
+        result = self.searcher.search(query)
+        self.assertEqual(result["metadata"]["cache_status"], "miss")
+
+    def test_cache_disabled(self):
+        """Test behavior when cache is disabled"""
+        config = SearchConfig(enable_caching=False)
+
+        with patch('LangGraphProductSearchSystem.ProductSeekerVectorDB', MockProductSeekerVectorDB):
+            searcher = LangGraphProductSearcher(
+                db_path="test_db",
+                collection_name="test_collection",
+                model_name="test_model",
+                config=config
+            )
+
+        result = searcher.search("test query")
+        self.assertEqual(result["metadata"]["cache_status"], "disabled")
+
+    def test_cache_cleanup(self):
+        """Test cache cleanup functionality"""
+        # Add some entries to cache
+        self.searcher.search("query1")
+        self.searcher.search("query2")
+
+        initial_cache_size = len(self.searcher._search_cache)
+        self.assertGreater(initial_cache_size, 0)
+
+        # Clear cache
+        self.searcher.clear_cache()
+        self.assertEqual(len(self.searcher._search_cache), 0)
+
+
+class TestPerformanceMetrics(unittest.TestCase):
+    """Test performance monitoring and metrics"""
+
+    def setUp(self):
+        """Set up test fixtures"""
+        with patch('LangGraphProductSearchSystem.ProductSeekerVectorDB', MockProductSeekerVectorDB):
+            self.searcher = LangGraphProductSearcher(
+                db_path="test_db",
+                collection_name="test_collection",
+                model_name="test_model"
+            )
+
+    def test_performance_stats_initialization(self):
+        """Test initial performance stats"""
+        stats = self.searcher.get_performance_stats()
+
+        expected_keys = [
+            "total_searches", "average_response_time",
+            "cache_hits", "cache_misses", "cache_size", "cache_hit_rate"
+        ]
+
+        for key in expected_keys:
+            self.assertIn(key, stats)
+
+        self.assertEqual(stats["total_searches"], 0)
+        self.assertEqual(stats["average_response_time"], 0.0)
+
+    def test_performance_stats_update(self):
+        """Test performance stats updates after searches"""
+        initial_stats = self.searcher.get_performance_stats()
+
+        # Perform some searches
+        self.searcher.search("query1")
+        self.searcher.search("query2")
+        self.searcher.search("query1")  # This should be a cache hit
+
+        updated_stats = self.searcher.get_performance_stats()
+
+        self.assertEqual(updated_stats["total_searches"], 3)
+        self.assertGreater(updated_stats["average_response_time"], 0)
+        self.assertEqual(updated_stats["cache_hits"], 1)
+        self.assertEqual(updated_stats["cache_misses"], 2)
+        self.assertGreater(updated_stats["cache_hit_rate"], 0)
+
+
+class TestErrorHandling(unittest.TestCase):
     """Test error handling and edge cases"""
 
-    @patch('sys.argv', ['LangGraphProductSearchSystemLauncher.py', 'bot'])
-    @patch('Launcher.check_database_status')
-    @patch('Launcher.setup_environment')
-    def test_bot_command_empty_database(self, mock_setup, mock_check_db):
-        """Test bot command with empty database"""
-        mock_setup.return_value = True
-        mock_check_db.return_value = False  # Empty database
+    def setUp(self):
+        """Set up test fixtures"""
+        with patch('LangGraphProductSearchSystem.ProductSeekerVectorDB', MockProductSeekerVectorDB):
+            self.searcher = LangGraphProductSearcher(
+                db_path="test_db",
+                collection_name="test_collection",
+                model_name="test_model"
+            )
 
-        sys.path.insert(0, '.')
-        from LangGraphProductSearchSystemLauncher import main
+    def test_database_error_handling(self):
+        """Test handling of database errors"""
+        # Mock database to raise an exception
+        with patch.object(self.searcher.db, 'search_by_text', side_effect=Exception("DB Error")):
+            result = self.searcher.search("test query")
 
-        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-            with self.assertRaises(SystemExit) as context:
-                main()
+            # Should handle error gracefully
+            self.assertIn("success", result)
+            self.assertIn("results", result)
 
-            self.assertEqual(context.exception.code, 1)
-            output = mock_stdout.getvalue()
-            self.assertIn("Database not ready", output)
+    def test_invalid_similarity_threshold(self):
+        """Test handling of invalid similarity thresholds"""
+        config = SearchConfig(min_similarity_threshold=1.5)  # Invalid threshold
 
-    @patch('sys.argv', ['LangGraphProductSearchSystemLauncher.py', 'invalid_command'])
-    def test_invalid_command(self):
-        """Test handling of invalid commands"""
-        sys.path.insert(0, '.')
+        result = self.searcher.search("test query", config=config)
 
-        # This should raise SystemExit due to argparse error
-        with self.assertRaises(SystemExit):
-            from LangGraphProductSearchSystemLauncher import main
-            main()
+        # Should still work (threshold will be ignored or clamped)
+        self.assertIn("success", result)
+
+    def test_extreme_max_results(self):
+        """Test handling of extreme max_results values"""
+        config = SearchConfig(max_results=0)
+
+        result = self.searcher.search("test query", config=config)
+
+        # Should handle gracefully
+        self.assertIn("success", result)
 
 
-def create_test_report():
-    """Create a comprehensive test report"""
-    print("\n" + "=" * 80)
-    print("PRODUCT SEARCH SYSTEM - TEST REPORT")
-    print("=" * 80)
+class PerformanceBenchmark:
+    """Performance benchmark suite"""
 
-    # Run the test suite
-    loader = unittest.TestLoader()
-    suite = loader.loadTestsFromModule(sys.modules[__name__])
+    def __init__(self):
+        with patch('LangGraphProductSearchSystem.ProductSeekerVectorDB', MockProductSeekerVectorDB):
+            self.searcher = LangGraphProductSearcher(
+                db_path="benchmark_db",
+                collection_name="benchmark_collection",
+                model_name="benchmark_model"
+            )
 
-    # Custom test runner with detailed output
-    stream = StringIO()
-    runner = unittest.TextTestRunner(stream=stream, verbosity=2)
-    result = runner.run(suite)
+    def benchmark_search_speed(self, num_searches=100):
+        """Benchmark search speed"""
+        queries = [
+            "gaming laptop", "wireless headphones", "smartphone android",
+            "bluetooth speaker", "tablet computer", "smart watch",
+            "digital camera", "external hard drive", "usb cable",
+            "power bank"
+        ]
 
-    # Print results
-    print(f"Tests Run: {result.testsRun}")
-    print(f"Failures: {len(result.failures)}")
-    print(f"Errors: {len(result.errors)}")
-    print(
-        f"Success Rate: {((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100):.1f}%")
+        start_time = time.time()
+
+        for i in range(num_searches):
+            query = queries[i % len(queries)]
+            self.searcher.search(f"{query} {i}")  # Make each query unique
+
+        total_time = time.time() - start_time
+        avg_time = total_time / num_searches
+
+        return {
+            "total_searches": num_searches,
+            "total_time": total_time,
+            "average_time": avg_time,
+            "searches_per_second": num_searches / total_time
+        }
+
+    def benchmark_cache_performance(self, num_searches=50):
+        """Benchmark cache performance"""
+        repeated_query = "benchmark cache query"
+
+        # First search (cache miss)
+        start_time = time.time()
+        self.searcher.search(repeated_query)
+        first_search_time = time.time() - start_time
+
+        # Subsequent searches (cache hits)
+        start_time = time.time()
+        for _ in range(num_searches - 1):
+            self.searcher.search(repeated_query)
+        cached_searches_time = time.time() - start_time
+
+        avg_cached_time = cached_searches_time / (num_searches - 1)
+
+        return {
+            "first_search_time": first_search_time,
+            "average_cached_time": avg_cached_time,
+            "speedup_ratio": first_search_time / avg_cached_time if avg_cached_time > 0 else float('inf')
+        }
+
+
+def run_test_suite():
+    """Run the complete test suite"""
+    print("🧪 Running LangGraph Product Search Test Suite")
+    print("=" * 60)
+
+    # Create test suite
+    test_suite = unittest.TestSuite()
+
+    # Add test classes
+    test_classes = [
+        TestSearchConfig,
+        TestLangGraphProductSearcher,
+        TestSearchWorkflow,
+        TestCacheSystem,
+        TestPerformanceMetrics,
+        TestErrorHandling
+    ]
+
+    for test_class in test_classes:
+        tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
+        test_suite.addTests(tests)
+
+    # Run tests
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(test_suite)
+
+    print(f"\n📊 Test Results:")
+    print(f"✅ Tests run: {result.testsRun}")
+    print(f"❌ Failures: {len(result.failures)}")
+    print(f"🚫 Errors: {len(result.errors)}")
 
     if result.failures:
-        print("\nFAILURES:")
+        print(f"\n❌ Failures:")
         for test, traceback in result.failures:
-            print(f"- {test}: {traceback.split('AssertionError:')[-1].strip()}")
+            print(f"  - {test}: {traceback.split('AssertionError: ')[-1].split('\n')[0]}")
 
     if result.errors:
-        print("\nERRORS:")
+        print(f"\n🚫 Errors:")
         for test, traceback in result.errors:
-            print(f"- {test}: {traceback.split('Exception:')[-1].strip()}")
-
-    print("\nDETAILED OUTPUT:")
-    print(stream.getvalue())
+            print(f"  - {test}: {traceback.split('\n')[-2]}")
 
     return result.wasSuccessful()
 
 
-def run_integration_test():
-    """Run a simulated integration test"""
-    print("\n" + "=" * 60)
-    print("INTEGRATION TEST - SIMULATED FULL WORKFLOW")
+def run_performance_benchmarks():
+    """Run performance benchmarks"""
+    print("\n🚀 Running Performance Benchmarks")
     print("=" * 60)
 
     try:
-        # Test if we can import the launcher
-        print("✓ Testing launcher import...")
-        sys.path.insert(0, '.')
-        import LangGraphProductSearchSystemLauncher
-        print("✓ Launcher imported successfully")
+        benchmark = PerformanceBenchmark()
 
-        # Test configuration constants
-        print("✓ Testing configuration...")
-        assert hasattr(LangGraphProductSearchSystemLauncher, 'SCRAPER_OUTPUT')
-        assert hasattr(LangGraphProductSearchSystemLauncher, 'DATABASE_PATH')
-        assert hasattr(LangGraphProductSearchSystemLauncher, 'COLLECTION_NAME')
-        print("✓ Configuration constants found")
+        # Search speed benchmark
+        print("📈 Search Speed Benchmark...")
+        speed_results = benchmark.benchmark_search_speed(50)  # Reduced for demo
 
-        # Test function availability
-        functions_to_test = [
-            'setup_environment',
-            'run_scraper',
-            'run_langgraph_system',
-            'run_image_bot',
-            'check_database_status',
-            'main'
-        ]
+        print(f"  Total searches: {speed_results['total_searches']}")
+        print(f"  Total time: {speed_results['total_time']:.2f}s")
+        print(f"  Average time per search: {speed_results['average_time']:.3f}s")
+        print(f"  Searches per second: {speed_results['searches_per_second']:.1f}")
 
-        for func_name in functions_to_test:
-            if hasattr(LangGraphProductSearchSystemLauncher, func_name):
-                print(f"✓ Function '{func_name}' available")
-            else:
-                print(f"✗ Function '{func_name}' missing")
-                return False
+        # Cache performance benchmark
+        print("\n💾 Cache Performance Benchmark...")
+        cache_results = benchmark.benchmark_cache_performance(20)  # Reduced for demo
 
-        print("\n✅ Integration test passed - All components available")
+        print(f"  First search time: {cache_results['first_search_time']:.3f}s")
+        print(f"  Average cached search time: {cache_results['average_cached_time']:.3f}s")
+        print(f"  Cache speedup ratio: {cache_results['speedup_ratio']:.1f}x")
+
         return True
 
     except Exception as e:
-        print(f"\n❌ Integration test failed: {e}")
+        print(f"❌ Benchmark failed: {e}")
         return False
 
 
-if __name__ == "__main__":
-    print("🧪 PRODUCT SEARCH SYSTEM TEST SUITE")
+def run_integration_tests():
+    """Run integration tests with real-world scenarios"""
+    print("\n🔧 Running Integration Tests")
+    print("=" * 60)
+
+    try:
+        with patch('LangGraphProductSearchSystem.ProductSeekerVectorDB', MockProductSeekerVectorDB):
+            searcher = LangGraphProductSearcher(
+                db_path="integration_test_db",
+                collection_name="integration_test_collection",
+                model_name="integration_test_model"
+            )
+
+        # Test various search scenarios
+        test_scenarios = [
+            {
+                "name": "Basic Text Search",
+                "query": "gaming laptop high performance",
+                "search_type": "text"
+            },
+            {
+                "name": "Hybrid Search",
+                "query": "similar to wireless headphones",
+                "search_type": "hybrid"
+            },
+            {
+                "name": "Auto Detection",
+                "query": "smartphone android latest",
+                "search_type": "auto"
+            },
+            {
+                "name": "Single Word Query",
+                "query": "tablet",
+                "search_type": "auto"
+            },
+            {
+                "name": "Long Query",
+                "query": "high quality bluetooth wireless noise cancelling headphones with microphone",
+                "search_type": "text"
+            }
+        ]
+
+        all_passed = True
+
+        for i, scenario in enumerate(test_scenarios, 1):
+            print(f"\n{i}. {scenario['name']}:")
+            print(f"   Query: '{scenario['query']}'")
+
+            start_time = time.time()
+            result = searcher.search(scenario['query'], scenario['search_type'])
+            duration = time.time() - start_time
+
+            if result.get('success', False):
+                print(f"   ✅ Success ({duration:.2f}s)")
+                print(f"   📊 Results: {len(result.get('results', []))}")
+                print(f"   🎯 Quality: {result.get('metadata', {}).get('quality_score', 0):.2f}")
+                print(f"   🔄 Refinements: {result.get('metadata', {}).get('refinement_count', 0)}")
+            else:
+                print(f"   ❌ Failed: {result.get('error', 'Unknown error')}")
+                all_passed = False
+
+        # Test performance statistics
+        print(f"\n📊 Final Performance Stats:")
+        stats = searcher.get_performance_stats()
+        for key, value in stats.items():
+            if isinstance(value, float):
+                print(f"   {key}: {value:.3f}")
+            else:
+                print(f"   {key}: {value}")
+
+        return all_passed
+
+    except Exception as e:
+        print(f"❌ Integration tests failed: {e}")
+        return False
+
+
+def main():
+    """Main test runner"""
+    print("🎯 LangGraph Product Search System - Comprehensive Test Suite")
     print("=" * 80)
 
-    # Run integration test first
-    integration_success = run_integration_test()
+    all_passed = True
 
     # Run unit tests
-    unit_test_success = create_test_report()
+    unit_tests_passed = run_test_suite()
+    all_passed = all_passed and unit_tests_passed
+
+    # Run integration tests
+    integration_tests_passed = run_integration_tests()
+    all_passed = all_passed and integration_tests_passed
+
+    # Run performance benchmarks
+    benchmarks_passed = run_performance_benchmarks()
 
     # Final summary
-    print("\n" + "=" * 80)
-    print("FINAL TEST SUMMARY")
-    print("=" * 80)
-    print(f"Integration Tests: {'✅ PASSED' if integration_success else '❌ FAILED'}")
-    print(f"Unit Tests: {'✅ PASSED' if unit_test_success else '❌ FAILED'}")
+    print(f"\n🏁 Test Suite Summary")
+    print("=" * 60)
+    print(f"✅ Unit Tests: {'PASSED' if unit_tests_passed else 'FAILED'}")
+    print(f"✅ Integration Tests: {'PASSED' if integration_tests_passed else 'FAILED'}")
+    print(f"✅ Performance Benchmarks: {'PASSED' if benchmarks_passed else 'FAILED'}")
+    print(f"\n🎯 Overall Status: {'✅ ALL TESTS PASSED' if all_passed else '❌ SOME TESTS FAILED'}")
 
-    if integration_success and unit_test_success:
-        print("\n🎉 ALL TESTS PASSED - System ready for deployment!")
-        exit_code = 0
-    else:
-        print("\n⚠️  SOME TESTS FAILED - Please review and fix issues")
-        exit_code = 1
+    return all_passed
 
-    print("\n📋 MANUAL TESTING CHECKLIST:")
-    print("□ Run 'python LangGraphProductSearchSystemLauncher.py status' to check database")
-    print("□ Run 'python LangGraphProductSearchSystemLauncher.py scrape' to test scraping")
-    print("□ Run 'python LangGraphProductSearchSystemLauncher.py langgraph' to test search system")
-    print("□ Run 'python LangGraphProductSearchSystemLauncher.py bot' to test web interface")
-    print("□ Run 'python LangGraphProductSearchSystemLauncher.py full-setup' for complete workflow")
 
-    sys.exit(exit_code)
+if __name__ == "__main__":
+    success = main()
+    exit(0 if success else 1)
 
 
 # C:\Users\themi\AppData\Local\Programs\Python\Python313\python.exe "C:/Program Files/JetBrains/PyCharm Community Edition 2024.1.2/plugins/python-ce/helpers/pycharm/_jb_unittest_runner.py" --path C:\Users\themi\PycharmProjects\ProductSeeker\TestLangGraphProductSearchSystem.py
-# Testing started at 11:38 AM ...
+# Testing started at 2:27 PM ...
 # Launching unittests with arguments python -m unittest C:\Users\themi\PycharmProjects\ProductSeeker\TestLangGraphProductSearchSystem.py in C:\Users\themi\PycharmProjects\ProductSeeker
 #
-# Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpqt26z4a6
-# Test environment cleaned up
-# Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpaa9c7kt8
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+# INFO:LangGraphProductSearchSystem:🧹 Search cache cleared
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
 #
-# Error
+#
+# disabled != unknown
+#
+# Expected :unknown
+# Actual   :disabled
+# <Click to see difference>
+#
 # Traceback (most recent call last):
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
-#     with self.decoration_helper(patched,
-#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-#                                 args,
-#                                 ^^^^^
-#                                 keywargs) as (newargs, newkeywargs):
-#                                 ^^^^^^^^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
-#     return next(self.gen)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
-#     arg = exit_stack.enter_context(patching)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
-#     result = _enter(cm)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
-#     original, local = self.get_original()
-#                       ~~~~~~~~~~~~~~~~~^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
-#     raise AttributeError(
-#         "%s does not have the attribute %r" % (target, name)
-#     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'ProductSeekerVectorDB'
+#   File "C:\Users\themi\PycharmProjects\ProductSeeker\TestLangGraphProductSearchSystem.py", line 350, in test_cache_disabled
+#     self.assertEqual(result["metadata"]["cache_status"], "disabled")
+#     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# AssertionError: 'unknown' != 'disabled'
+# - unknown
+# + disabled
 #
 #
-# Error
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+#
+#
+# miss != unknown
+#
+# Expected :unknown
+# Actual   :miss
+# <Click to see difference>
+#
 # Traceback (most recent call last):
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
-#     with self.decoration_helper(patched,
-#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-#                                 args,
-#                                 ^^^^^
-#                                 keywargs) as (newargs, newkeywargs):
-#                                 ^^^^^^^^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
-#     return next(self.gen)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
-#     arg = exit_stack.enter_context(patching)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
-#     result = _enter(cm)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
-#     original, local = self.get_original()
-#                       ~~~~~~~~~~~~~~~~~^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
-#     raise AttributeError(
-#         "%s does not have the attribute %r" % (target, name)
-#     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'ProductSeekerVectorDB'
+#   File "C:\Users\themi\PycharmProjects\ProductSeeker\TestLangGraphProductSearchSystem.py", line 335, in test_cache_expiration
+#     self.assertEqual(result["metadata"]["cache_status"], "miss")
+#     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# AssertionError: 'unknown' != 'miss'
+# - unknown
+# + miss
 #
 #
-# Error
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+#
+#
+# miss != unknown
+#
+# Expected :unknown
+# Actual   :miss
+# <Click to see difference>
+#
 # Traceback (most recent call last):
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
-#     with self.decoration_helper(patched,
-#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-#                                 args,
-#                                 ^^^^^
-#                                 keywargs) as (newargs, newkeywargs):
-#                                 ^^^^^^^^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
-#     return next(self.gen)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
-#     arg = exit_stack.enter_context(patching)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
-#     result = _enter(cm)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
-#     original, local = self.get_original()
-#                       ~~~~~~~~~~~~~~~~~^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
-#     raise AttributeError(
-#         "%s does not have the attribute %r" % (target, name)
-#     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'ProductSeekerVectorDB'
+#   File "C:\Users\themi\PycharmProjects\ProductSeeker\TestLangGraphProductSearchSystem.py", line 314, in test_cache_hit_miss
+#     self.assertEqual(result1["metadata"]["cache_status"], "miss")
+#     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# AssertionError: 'unknown' != 'miss'
+# - unknown
+# + miss
 #
-# Test environment cleaned up
-# Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpw5kvdfow
 #
-# Error
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+# ERROR:LangGraphProductSearchSystem:Single search failed: DB Error
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+#
+# Failure
 # Traceback (most recent call last):
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1424, in patched
-#     return func(*newargs, **newkeywargs)
-#   File "C:\Users\themi\PycharmProjects\ProductSeeker\TestLangGraphProductSearchSystem.py", line 158, in test_setup_environment_missing_modules
-#     from Launcher import setup_environment
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1167, in __call__
-#     return self._mock_call(*args, **kwargs)
-#            ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1171, in _mock_call
-#     return self._execute_mock_call(*args, **kwargs)
-#            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1232, in _execute_mock_call
-#     result = effect(*args, **kwargs)
-# TypeError: TestEnvironmentSetup.test_setup_environment_missing_modules.<locals>.mock_import_side_effect() takes 1 positional argument but 5 were given
+#   File "C:\Users\themi\PycharmProjects\ProductSeeker\TestLangGraphProductSearchSystem.py", line 228, in test_refinement_strategy
+#     self.assertIn(expected_contains.split()[0], result.split())
+#     ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# AssertionError: 'electronics' not found in ['phone']
 #
-# Test environment cleaned up
-# Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpbk2nejru
-# usage: LangGraphProductSearchSystemLauncher.py [-h] [--skip-checks]
-#                    {scrape,langgraph,bot,console-bot,status,full-setup}
-# LangGraphProductSearchSystemLauncher.py: error: argument command: invalid choice: 'invalid_command' (choose from scrape, langgraph, bot, console-bot, status, full-setup)
-# Test environment cleaned up
-# Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpac85t6on
-#
-# Error
-# Traceback (most recent call last):
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
-#     with self.decoration_helper(patched,
-#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-#                                 args,
-#                                 ^^^^^
-#                                 keywargs) as (newargs, newkeywargs):
-#                                 ^^^^^^^^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
-#     return next(self.gen)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
-#     arg = exit_stack.enter_context(patching)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
-#     result = _enter(cm)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
-#     original, local = self.get_original()
-#                       ~~~~~~~~~~~~~~~~~^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
-#     raise AttributeError(
-#         "%s does not have the attribute %r" % (target, name)
-#     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'ImageSearchBot'
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
 #
 #
-# Error
-# Traceback (most recent call last):
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
-#     with self.decoration_helper(patched,
-#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-#                                 args,
-#                                 ^^^^^
-#                                 keywargs) as (newargs, newkeywargs):
-#                                 ^^^^^^^^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
-#     return next(self.gen)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
-#     arg = exit_stack.enter_context(patching)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
-#     result = _enter(cm)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
-#     original, local = self.get_original()
-#                       ~~~~~~~~~~~~~~~~~^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
-#     raise AttributeError(
-#         "%s does not have the attribute %r" % (target, name)
-#     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'ImageSearchBot'
+# Ran 22 tests in 1.946s
 #
-#
-# Error
-# Traceback (most recent call last):
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
-#     with self.decoration_helper(patched,
-#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-#                                 args,
-#                                 ^^^^^
-#                                 keywargs) as (newargs, newkeywargs):
-#                                 ^^^^^^^^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
-#     return next(self.gen)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
-#     arg = exit_stack.enter_context(patching)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
-#     result = _enter(cm)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
-#     original, local = self.get_original()
-#                       ~~~~~~~~~~~~~~~~~^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
-#     raise AttributeError(
-#         "%s does not have the attribute %r" % (target, name)
-#     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'ImageSearchBot'
-#
-# Test environment cleaned up
-# Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpt8v54blb
-# Test environment cleaned up
-# Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpm8s5twl3
-# Test environment cleaned up
-# Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpme6fms_9
-# Test environment cleaned up
-#
-# Error
-# Traceback (most recent call last):
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
-#     with self.decoration_helper(patched,
-#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-#                                 args,
-#                                 ^^^^^
-#                                 keywargs) as (newargs, newkeywargs):
-#                                 ^^^^^^^^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
-#     return next(self.gen)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
-#     arg = exit_stack.enter_context(patching)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
-#     result = _enter(cm)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
-#     original, local = self.get_original()
-#                       ~~~~~~~~~~~~~~~~~^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
-#     raise AttributeError(
-#         "%s does not have the attribute %r" % (target, name)
-#     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'IntegratedProductScraper'
-#
-#
-# Error
-# Traceback (most recent call last):
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
-#     with self.decoration_helper(patched,
-#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-#                                 args,
-#                                 ^^^^^
-#                                 keywargs) as (newargs, newkeywargs):
-#                                 ^^^^^^^^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
-#     return next(self.gen)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
-#     arg = exit_stack.enter_context(patching)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
-#     result = _enter(cm)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
-#     original, local = self.get_original()
-#                       ~~~~~~~~~~~~~~~~~^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
-#     raise AttributeError(
-#         "%s does not have the attribute %r" % (target, name)
-#     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'IntegratedProductScraper'
-#
-#
-#
-# Ran 19 tests in 46.474s
-#
-# FAILED (errors=10)
-#
-# Error
-# Traceback (most recent call last):
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1421, in patched
-#     with self.decoration_helper(patched,
-#          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
-#                                 args,
-#                                 ^^^^^
-#                                 keywargs) as (newargs, newkeywargs):
-#                                 ^^^^^^^^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 141, in __enter__
-#     return next(self.gen)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1403, in decoration_helper
-#     arg = exit_stack.enter_context(patching)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\contextlib.py", line 530, in enter_context
-#     result = _enter(cm)
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1495, in __enter__
-#     original, local = self.get_original()
-#                       ~~~~~~~~~~~~~~~~~^^
-#   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1465, in get_original
-#     raise AttributeError(
-#         "%s does not have the attribute %r" % (target, name)
-#     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'IntegratedProductScraper'
-#
+# FAILED (failures=4)
 #
 # Process finished with exit code 1
