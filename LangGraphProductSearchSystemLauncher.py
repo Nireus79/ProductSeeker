@@ -296,6 +296,6 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.argv = ['Launcher.py', 'console-bot']  # 'scrape', 'langgraph', 'bot', 'console-bot', 'status', 'full-setup'
-    sys.argv = ['Launcher.py', 'console-bot']
+    sys.argv = ['LangGraphProductSearchSystemLauncher.py', 'console-bot']  # 'scrape', 'langgraph', 'bot', 'console-bot', 'status', 'full-setup'
+    sys.argv = ['LangGraphProductSearchSystemLauncher.py', 'console-bot']
     main()

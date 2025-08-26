@@ -117,7 +117,7 @@ class TestProductSearchSystemLauncher(unittest.TestCase):
 
     def setUp(self):
         """Set up each test"""
-        self.launcher_path = "Launcher.py"
+        self.launcher_path = "LangGraphProductSearchSystemLauncher.py"
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
         self.captured_output = StringIO()
@@ -139,7 +139,7 @@ class TestEnvironmentSetup(TestProductSearchSystemLauncher):
 
             # Import the function
             sys.path.insert(0, '.')
-            from Launcher import setup_environment
+            from LangGraphProductSearchSystemLauncher import setup_environment
 
             result = setup_environment()
             self.assertTrue(result)
@@ -155,7 +155,7 @@ class TestEnvironmentSetup(TestProductSearchSystemLauncher):
 
         with patch('builtins.__import__', side_effect=mock_import_side_effect):
             sys.path.insert(0, '.')
-            from Launcher import setup_environment
+            from LangGraphProductSearchSystemLauncher import setup_environment
 
             result = setup_environment()
             self.assertFalse(result)
@@ -178,7 +178,7 @@ class TestScraperFunctionality(TestProductSearchSystemLauncher):
         mock_scraper_class.return_value = mock_scraper
 
         sys.path.insert(0, '.')
-        from Launcher import run_scraper
+        from LangGraphProductSearchSystemLauncher import run_scraper
 
         with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
             result = run_scraper()
@@ -200,7 +200,7 @@ class TestScraperFunctionality(TestProductSearchSystemLauncher):
         mock_scraper_class.return_value = mock_scraper
 
         sys.path.insert(0, '.')
-        from Launcher import run_scraper
+        from LangGraphProductSearchSystemLauncher import run_scraper
 
         with patch('sys.stdout', new_callable=StringIO):
             result = run_scraper()
@@ -214,7 +214,7 @@ class TestScraperFunctionality(TestProductSearchSystemLauncher):
         mock_scraper_class.side_effect = Exception("Import error")
 
         sys.path.insert(0, '.')
-        from Launcher import run_scraper
+        from LangGraphProductSearchSystemLauncher import run_scraper
 
         result = run_scraper()
         self.assertFalse(result)
@@ -242,7 +242,7 @@ class TestLangGraphSystem(TestProductSearchSystemLauncher):
         mock_searcher_class.return_value = mock_searcher
 
         sys.path.insert(0, '.')
-        from Launcher import run_langgraph_system
+        from LangGraphProductSearchSystemLauncher import run_langgraph_system
 
         with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
             result = run_langgraph_system()
@@ -265,7 +265,7 @@ class TestLangGraphSystem(TestProductSearchSystemLauncher):
         mock_searcher_class.return_value = mock_searcher
 
         sys.path.insert(0, '.')
-        from Launcher import run_langgraph_system
+        from LangGraphProductSearchSystemLauncher import run_langgraph_system
 
         with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
             result = run_langgraph_system()
@@ -287,7 +287,7 @@ class TestImageBot(TestProductSearchSystemLauncher):
         mock_bot_class.return_value = mock_bot
 
         sys.path.insert(0, '.')
-        from Launcher import run_image_bot
+        from LangGraphProductSearchSystemLauncher import run_image_bot
 
         with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
             result = run_image_bot("streamlit")
@@ -306,7 +306,7 @@ class TestImageBot(TestProductSearchSystemLauncher):
         mock_bot_class.return_value = mock_bot
 
         sys.path.insert(0, '.')
-        from Launcher import run_image_bot
+        from LangGraphProductSearchSystemLauncher import run_image_bot
 
         with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
             result = run_image_bot("console")
@@ -323,7 +323,7 @@ class TestImageBot(TestProductSearchSystemLauncher):
         mock_bot_class.side_effect = Exception("Bot initialization failed")
 
         sys.path.insert(0, '.')
-        from Launcher import run_image_bot
+        from LangGraphProductSearchSystemLauncher import run_image_bot
 
         result = run_image_bot("streamlit")
         self.assertFalse(result)
@@ -345,7 +345,7 @@ class TestDatabaseOperations(TestProductSearchSystemLauncher):
         mock_db_class.return_value = mock_db
 
         sys.path.insert(0, '.')
-        from Launcher import check_database_status
+        from LangGraphProductSearchSystemLauncher import check_database_status
 
         with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
             result = check_database_status()
@@ -367,7 +367,7 @@ class TestDatabaseOperations(TestProductSearchSystemLauncher):
         mock_db_class.return_value = mock_db
 
         sys.path.insert(0, '.')
-        from Launcher import check_database_status
+        from LangGraphProductSearchSystemLauncher import check_database_status
 
         with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
             result = check_database_status()
@@ -383,7 +383,7 @@ class TestDatabaseOperations(TestProductSearchSystemLauncher):
         mock_db_class.side_effect = Exception("Database connection failed")
 
         sys.path.insert(0, '.')
-        from Launcher import check_database_status
+        from LangGraphProductSearchSystemLauncher import check_database_status
 
         result = check_database_status()
         self.assertFalse(result)
@@ -393,7 +393,7 @@ class TestDatabaseOperations(TestProductSearchSystemLauncher):
 class TestMainFunction(TestProductSearchSystemLauncher):
     """Test main function and command line interface"""
 
-    @patch('sys.argv', ['Launcher.py', 'status'])
+    @patch('sys.argv', ['LangGraphProductSearchSystemLauncher.py', 'status'])
     @patch('Launcher.check_database_status')
     @patch('Launcher.setup_environment')
     def test_main_status_command(self, mock_setup, mock_check_db):
@@ -402,7 +402,7 @@ class TestMainFunction(TestProductSearchSystemLauncher):
         mock_check_db.return_value = True
 
         sys.path.insert(0, '.')
-        from Launcher import main
+        from LangGraphProductSearchSystemLauncher import main
 
         with patch('sys.stdout', new_callable=StringIO):
             main()
@@ -410,7 +410,7 @@ class TestMainFunction(TestProductSearchSystemLauncher):
             mock_setup.assert_called_once()
             mock_check_db.assert_called_once()
 
-    @patch('sys.argv', ['Launcher.py', 'scrape'])
+    @patch('sys.argv', ['LangGraphProductSearchSystemLauncher.py', 'scrape'])
     @patch('Launcher.run_scraper')
     @patch('Launcher.setup_environment')
     def test_main_scrape_command(self, mock_setup, mock_scraper):
@@ -419,7 +419,7 @@ class TestMainFunction(TestProductSearchSystemLauncher):
         mock_scraper.return_value = True
 
         sys.path.insert(0, '.')
-        from Launcher import main
+        from LangGraphProductSearchSystemLauncher import main
 
         with patch('sys.stdout', new_callable=StringIO):
             main()
@@ -427,7 +427,7 @@ class TestMainFunction(TestProductSearchSystemLauncher):
             mock_setup.assert_called_once()
             mock_scraper.assert_called_once()
 
-    @patch('sys.argv', ['Launcher.py', 'langgraph'])
+    @patch('sys.argv', ['LangGraphProductSearchSystemLauncher.py', 'langgraph'])
     @patch('Launcher.run_langgraph_system')
     @patch('Launcher.check_database_status')
     @patch('Launcher.setup_environment')
@@ -438,7 +438,7 @@ class TestMainFunction(TestProductSearchSystemLauncher):
         mock_langgraph.return_value = True
 
         sys.path.insert(0, '.')
-        from Launcher import main
+        from LangGraphProductSearchSystemLauncher import main
 
         with patch('sys.stdout', new_callable=StringIO):
             main()
@@ -465,8 +465,8 @@ class TestIntegrationScenarios(TestProductSearchSystemLauncher):
         sys.path.insert(0, '.')
 
         # Mock sys.argv for full-setup command
-        with patch('sys.argv', ['Launcher.py', 'full-setup']):
-            from Launcher import main
+        with patch('sys.argv', ['LangGraphProductSearchSystemLauncher.py', 'full-setup']):
+            from LangGraphProductSearchSystemLauncher import main
 
             with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
                 main()
@@ -483,7 +483,7 @@ class TestIntegrationScenarios(TestProductSearchSystemLauncher):
 class TestErrorHandling(TestProductSearchSystemLauncher):
     """Test error handling and edge cases"""
 
-    @patch('sys.argv', ['Launcher.py', 'bot'])
+    @patch('sys.argv', ['LangGraphProductSearchSystemLauncher.py', 'bot'])
     @patch('Launcher.check_database_status')
     @patch('Launcher.setup_environment')
     def test_bot_command_empty_database(self, mock_setup, mock_check_db):
@@ -492,7 +492,7 @@ class TestErrorHandling(TestProductSearchSystemLauncher):
         mock_check_db.return_value = False  # Empty database
 
         sys.path.insert(0, '.')
-        from Launcher import main
+        from LangGraphProductSearchSystemLauncher import main
 
         with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
             with self.assertRaises(SystemExit) as context:
@@ -502,14 +502,14 @@ class TestErrorHandling(TestProductSearchSystemLauncher):
             output = mock_stdout.getvalue()
             self.assertIn("Database not ready", output)
 
-    @patch('sys.argv', ['Launcher.py', 'invalid_command'])
+    @patch('sys.argv', ['LangGraphProductSearchSystemLauncher.py', 'invalid_command'])
     def test_invalid_command(self):
         """Test handling of invalid commands"""
         sys.path.insert(0, '.')
 
         # This should raise SystemExit due to argparse error
         with self.assertRaises(SystemExit):
-            from Launcher import main
+            from LangGraphProductSearchSystemLauncher import main
             main()
 
 
@@ -561,13 +561,13 @@ def run_integration_test():
         # Test if we can import the launcher
         print("✓ Testing launcher import...")
         sys.path.insert(0, '.')
-        import Launcher
+        import LangGraphProductSearchSystemLauncher
         print("✓ Launcher imported successfully")
 
         # Test configuration constants
         print("✓ Testing configuration...")
-        assert hasattr(Launcher, 'SCRAPER_OUTPUT')
-        assert hasattr(Launcher, 'DATABASE_PATH')
+        assert hasattr(LangGraphProductSearchSystemLauncher, 'SCRAPER_OUTPUT')
+        assert hasattr(LangGraphProductSearchSystemLauncher, 'DATABASE_PATH')
         assert hasattr(Launcher, 'COLLECTION_NAME')
         print("✓ Configuration constants found")
 
@@ -621,18 +621,18 @@ if __name__ == "__main__":
         exit_code = 1
 
     print("\n📋 MANUAL TESTING CHECKLIST:")
-    print("□ Run 'python Launcher.py status' to check database")
-    print("□ Run 'python Launcher.py scrape' to test scraping")
-    print("□ Run 'python Launcher.py langgraph' to test search system")
-    print("□ Run 'python Launcher.py bot' to test web interface")
-    print("□ Run 'python Launcher.py full-setup' for complete workflow")
+    print("□ Run 'python LangGraphProductSearchSystemLauncher.py status' to check database")
+    print("□ Run 'python LangGraphProductSearchSystemLauncher.py scrape' to test scraping")
+    print("□ Run 'python LangGraphProductSearchSystemLauncher.py langgraph' to test search system")
+    print("□ Run 'python LangGraphProductSearchSystemLauncher.py bot' to test web interface")
+    print("□ Run 'python LangGraphProductSearchSystemLauncher.py full-setup' for complete workflow")
 
     sys.exit(exit_code)
 
 
-# C:\Users\themi\AppData\Local\Programs\Python\Python313\python.exe "C:/Program Files/JetBrains/PyCharm Community Edition 2024.1.2/plugins/python-ce/helpers/pycharm/_jb_unittest_runner.py" --path C:\Users\themi\PycharmProjects\ProductSeeker\tst.py
+# C:\Users\themi\AppData\Local\Programs\Python\Python313\python.exe "C:/Program Files/JetBrains/PyCharm Community Edition 2024.1.2/plugins/python-ce/helpers/pycharm/_jb_unittest_runner.py" --path C:\Users\themi\PycharmProjects\ProductSeeker\TestLangGraphProductSearchSystem.py
 # Testing started at 11:38 AM ...
-# Launching unittests with arguments python -m unittest C:\Users\themi\PycharmProjects\ProductSeeker\tst.py in C:\Users\themi\PycharmProjects\ProductSeeker
+# Launching unittests with arguments python -m unittest C:\Users\themi\PycharmProjects\ProductSeeker\TestLangGraphProductSearchSystem.py in C:\Users\themi\PycharmProjects\ProductSeeker
 #
 # Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpqt26z4a6
 # Test environment cleaned up
@@ -660,7 +660,7 @@ if __name__ == "__main__":
 #     raise AttributeError(
 #         "%s does not have the attribute %r" % (target, name)
 #     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'ProductSeekerVectorDB'
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'ProductSeekerVectorDB'
 #
 #
 # Error
@@ -685,7 +685,7 @@ if __name__ == "__main__":
 #     raise AttributeError(
 #         "%s does not have the attribute %r" % (target, name)
 #     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'ProductSeekerVectorDB'
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'ProductSeekerVectorDB'
 #
 #
 # Error
@@ -710,7 +710,7 @@ if __name__ == "__main__":
 #     raise AttributeError(
 #         "%s does not have the attribute %r" % (target, name)
 #     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'ProductSeekerVectorDB'
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'ProductSeekerVectorDB'
 #
 # Test environment cleaned up
 # Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpw5kvdfow
@@ -719,7 +719,7 @@ if __name__ == "__main__":
 # Traceback (most recent call last):
 #   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1424, in patched
 #     return func(*newargs, **newkeywargs)
-#   File "C:\Users\themi\PycharmProjects\ProductSeeker\tst.py", line 158, in test_setup_environment_missing_modules
+#   File "C:\Users\themi\PycharmProjects\ProductSeeker\TestLangGraphProductSearchSystem.py", line 158, in test_setup_environment_missing_modules
 #     from Launcher import setup_environment
 #   File "C:\Users\themi\AppData\Local\Programs\Python\Python313\Lib\unittest\mock.py", line 1167, in __call__
 #     return self._mock_call(*args, **kwargs)
@@ -733,9 +733,9 @@ if __name__ == "__main__":
 #
 # Test environment cleaned up
 # Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpbk2nejru
-# usage: Launcher.py [-h] [--skip-checks]
+# usage: LangGraphProductSearchSystemLauncher.py [-h] [--skip-checks]
 #                    {scrape,langgraph,bot,console-bot,status,full-setup}
-# Launcher.py: error: argument command: invalid choice: 'invalid_command' (choose from scrape, langgraph, bot, console-bot, status, full-setup)
+# LangGraphProductSearchSystemLauncher.py: error: argument command: invalid choice: 'invalid_command' (choose from scrape, langgraph, bot, console-bot, status, full-setup)
 # Test environment cleaned up
 # Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpac85t6on
 #
@@ -761,7 +761,7 @@ if __name__ == "__main__":
 #     raise AttributeError(
 #         "%s does not have the attribute %r" % (target, name)
 #     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'ImageSearchBot'
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'ImageSearchBot'
 #
 #
 # Error
@@ -786,7 +786,7 @@ if __name__ == "__main__":
 #     raise AttributeError(
 #         "%s does not have the attribute %r" % (target, name)
 #     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'ImageSearchBot'
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'ImageSearchBot'
 #
 #
 # Error
@@ -811,7 +811,7 @@ if __name__ == "__main__":
 #     raise AttributeError(
 #         "%s does not have the attribute %r" % (target, name)
 #     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'ImageSearchBot'
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'ImageSearchBot'
 #
 # Test environment cleaned up
 # Test environment created at: C:\Users\themi\AppData\Local\Temp\tmpt8v54blb
@@ -843,7 +843,7 @@ if __name__ == "__main__":
 #     raise AttributeError(
 #         "%s does not have the attribute %r" % (target, name)
 #     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'IntegratedProductScraper'
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'IntegratedProductScraper'
 #
 #
 # Error
@@ -868,7 +868,7 @@ if __name__ == "__main__":
 #     raise AttributeError(
 #         "%s does not have the attribute %r" % (target, name)
 #     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'IntegratedProductScraper'
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'IntegratedProductScraper'
 #
 #
 #
@@ -898,7 +898,7 @@ if __name__ == "__main__":
 #     raise AttributeError(
 #         "%s does not have the attribute %r" % (target, name)
 #     )
-# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\Launcher.py'> does not have the attribute 'IntegratedProductScraper'
+# AttributeError: <module 'Launcher' from 'C:\\Users\\themi\\PycharmProjects\\ProductSeeker\\LangGraphProductSearchSystemLauncher.py'> does not have the attribute 'IntegratedProductScraper'
 #
 #
 # Process finished with exit code 1
