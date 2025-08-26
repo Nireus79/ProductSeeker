@@ -68,8 +68,8 @@ class TestSystemConfig(unittest.TestCase):
         self.assertEqual(config.voice_language, "en-US")
         self.assertEqual(config.tts_rate, 200)
         self.assertEqual(config.database_path, "D:/Vector/ProductSeeker_data")
-        self.assertEqual(config.collection_name, "products")
-        self.assertEqual(config.model_name, "all-MiniLM-L6-v2")
+        self.assertEqual(config.collection_name, 'ecommerce_test')
+        self.assertEqual(config.model_name, 'clip-ViT-B-32')
 
     def test_custom_config(self):
         """Test custom configuration"""
@@ -949,3 +949,152 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# C:\Users\themi\AppData\Local\Programs\Python\Python313\python.exe "C:/Program Files/JetBrains/PyCharm Community Edition 2024.1.2/plugins/python-ce/helpers/pycharm/_jb_unittest_runner.py" --path C:\Users\themi\PycharmProjects\ProductSeeker\TestSocraticGenProductSeeker.py
+# Testing started at 10:56 AM ...
+# Launching unittests with arguments python -m unittest C:\Users\themi\PycharmProjects\ProductSeeker\TestSocraticGenProductSeeker.py in C:\Users\themi\PycharmProjects\ProductSeeker
+#
+# ✅ Database modules loaded successfully
+# INFO:SocraticGenProductSeeker:🔌 Connecting to database at: D:/Vector/ProductSeeker_data
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# INFO:SocraticGenProductSeeker:🤖 All agents initialized successfully
+# INFO:SocraticGenProductSeeker:🤖 Advanced Agentic Product Search System initialized
+# INFO:SocraticGenProductSeeker:📁 Database path: D:/Vector/ProductSeeker_data
+# INFO:SocraticGenProductSeeker:📊 Collection: ecommerce_test
+# INFO:SocraticGenProductSeeker:🧠 Model: clip-ViT-B-32
+# INFO:SocraticGenProductSeeker:🚀 Starting text search: 'test'
+# INFO:SocraticGenProductSeeker:✅ Search completed in 0.01s
+# INFO:SocraticGenProductSeeker:🔌 Connecting to database at: D:/Vector/ProductSeeker_data
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# INFO:SocraticGenProductSeeker:🤖 All agents initialized successfully
+# INFO:SocraticGenProductSeeker:🤖 Advanced Agentic Product Search System initialized
+# INFO:SocraticGenProductSeeker:📁 Database path: D:/Vector/ProductSeeker_data
+# INFO:SocraticGenProductSeeker:📊 Collection: ecommerce_test
+# INFO:SocraticGenProductSeeker:🧠 Model: clip-ViT-B-32
+# INFO:SocraticGenProductSeeker:🔌 Connecting to database at: D:/Vector/ProductSeeker_data
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# INFO:SocraticGenProductSeeker:🤖 All agents initialized successfully
+# INFO:SocraticGenProductSeeker:🤖 Advanced Agentic Product Search System initialized
+# INFO:SocraticGenProductSeeker:📁 Database path: D:/Vector/ProductSeeker_data
+# INFO:SocraticGenProductSeeker:📊 Collection: ecommerce_test
+# INFO:SocraticGenProductSeeker:🧠 Model: clip-ViT-B-32
+# INFO:SocraticGenProductSeeker:🚀 Starting image search: 'None'
+# INFO:SocraticGenProductSeeker:✅ Search completed in 0.00s
+# INFO:SocraticGenProductSeeker:🔌 Connecting to database at: D:/Vector/ProductSeeker_data
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# INFO:SocraticGenProductSeeker:🤖 All agents initialized successfully
+# INFO:SocraticGenProductSeeker:🤖 Advanced Agentic Product Search System initialized
+# INFO:SocraticGenProductSeeker:📁 Database path: D:/Vector/ProductSeeker_data
+# INFO:SocraticGenProductSeeker:📊 Collection: ecommerce_test
+# INFO:SocraticGenProductSeeker:🧠 Model: clip-ViT-B-32
+# INFO:SocraticGenProductSeeker:🔌 Connecting to database at: D:/Vector/ProductSeeker_data
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# INFO:SocraticGenProductSeeker:🤖 All agents initialized successfully
+# INFO:SocraticGenProductSeeker:🤖 Advanced Agentic Product Search System initialized
+# INFO:SocraticGenProductSeeker:📁 Database path: D:/Vector/ProductSeeker_data
+# INFO:SocraticGenProductSeeker:📊 Collection: ecommerce_test
+# INFO:SocraticGenProductSeeker:🧠 Model: clip-ViT-B-32
+# INFO:SocraticGenProductSeeker:🔌 Connecting to database at: D:/Vector/ProductSeeker_data
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# INFO:SocraticGenProductSeeker:🤖 All agents initialized successfully
+# INFO:SocraticGenProductSeeker:🤖 Advanced Agentic Product Search System initialized
+# INFO:SocraticGenProductSeeker:📁 Database path: D:/Vector/ProductSeeker_data
+# INFO:SocraticGenProductSeeker:📊 Collection: ecommerce_test
+# INFO:SocraticGenProductSeeker:🧠 Model: clip-ViT-B-32
+# INFO:SocraticGenProductSeeker:🚀 Starting text search: 'gaming laptop'
+# INFO:SocraticGenProductSeeker:✅ Search completed in 0.00s
+# INFO:SocraticGenProductSeeker:🔌 Connecting to database at: D:/Vector/ProductSeeker_data
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# INFO:SocraticGenProductSeeker:🤖 All agents initialized successfully
+# INFO:SocraticGenProductSeeker:🤖 Advanced Agentic Product Search System initialized
+# INFO:SocraticGenProductSeeker:📁 Database path: D:/Vector/ProductSeeker_data
+# INFO:SocraticGenProductSeeker:📊 Collection: ecommerce_test
+# INFO:SocraticGenProductSeeker:🧠 Model: clip-ViT-B-32
+# INFO:SocraticGenProductSeeker:🔌 Connecting to database at: D:/Vector/ProductSeeker_data
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# INFO:SocraticGenProductSeeker:🤖 All agents initialized successfully
+# INFO:SocraticGenProductSeeker:🤖 Advanced Agentic Product Search System initialized
+# INFO:SocraticGenProductSeeker:📁 Database path: D:/Vector/ProductSeeker_data
+# INFO:SocraticGenProductSeeker:📊 Collection: ecommerce_test
+# INFO:SocraticGenProductSeeker:🧠 Model: clip-ViT-B-32
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# INFO:SocraticGenProductSeeker:🔌 Connecting to database at: D:/Vector/ProductSeeker_data
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# INFO:SocraticGenProductSeeker:🤖 All agents initialized successfully
+# 🤖 Advanced Agentic Product Search System
+# ==================================================
+# INFO:SocraticGenProductSeeker:🤖 Advanced Agentic Product Search System initialized
+# INFO:SocraticGenProductSeeker:📁 Database path: D:/Vector/ProductSeeker_data
+# INFO:SocraticGenProductSeeker:📊 Collection: ecommerce_test
+# INFO:SocraticGenProductSeeker:🧠 Model: clip-ViT-B-32
+# INFO:SocraticGenProductSeeker:🔌 Connecting to database at: D:/Vector/ProductSeeker_data
+# 🔄 Initializing system...
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# INFO:SocraticGenProductSeeker:🤖 All agents initialized successfully
+# INFO:SocraticGenProductSeeker:🤖 Advanced Agentic Product Search System initialized
+# INFO:SocraticGenProductSeeker:📁 Database path: D:/Vector/ProductSeeker_data
+# INFO:SocraticGenProductSeeker:📊 Collection: ecommerce_test
+# INFO:SocraticGenProductSeeker:🧠 Model: clip-ViT-B-32
+# INFO:SocraticGenProductSeeker:🔌 Connecting to database at: D:/Vector/ProductSeeker_data
+# ✅ System ready!
+# 📊 Database: ✅
+# 🎤 Voice: ❌
+# 📸 Image: ✅
+#
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# INFO:SocraticGenProductSeeker:🤖 All agents initialized successfully
+# INFO:SocraticGenProductSeeker:🤖 Advanced Agentic Product Search System initialized
+# INFO:SocraticGenProductSeeker:📁 Database path: D:/Vector/ProductSeeker_data
+# INFO:SocraticGenProductSeeker:📊 Collection: ecommerce_test
+# INFO:SocraticGenProductSeeker:🧠 Model: clip-ViT-B-32
+# INFO:SocraticGenProductSeeker:🚀 Starting text search: 'test'
+# INFO:SocraticGenProductSeeker:✅ Search completed in 0.00s
+# INFO:SocraticGenProductSeeker:🔌 Connecting to database at: D:/Vector/ProductSeeker_data
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# INFO:SocraticGenProductSeeker:🤖 All agents initialized successfully
+# INFO:SocraticGenProductSeeker:🤖 Advanced Agentic Product Search System initialized
+# INFO:SocraticGenProductSeeker:📁 Database path: D:/Vector/ProductSeeker_data
+# INFO:SocraticGenProductSeeker:📊 Collection: ecommerce_test
+# INFO:SocraticGenProductSeeker:🧠 Model: clip-ViT-B-32
+# INFO:SocraticGenProductSeeker:🚀 Starting text search: 'test'
+# ERROR:SocraticGenProductSeeker:Text search failed: Database error
+# INFO:SocraticGenProductSeeker:✅ Search completed in 0.00s
+# INFO:SocraticGenProductSeeker:🔌 Connecting to database at: D:/Vector/ProductSeeker_data
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# INFO:SocraticGenProductSeeker:🤖 All agents initialized successfully
+# INFO:SocraticGenProductSeeker:🤖 Advanced Agentic Product Search System initialized
+# INFO:SocraticGenProductSeeker:📁 Database path: D:/Vector/ProductSeeker_data
+# INFO:SocraticGenProductSeeker:📊 Collection: ecommerce_test
+# INFO:SocraticGenProductSeeker:🧠 Model: clip-ViT-B-32
+# INFO:SocraticGenProductSeeker:🔌 Connecting to database at: D:/Vector/ProductSeeker_data
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# INFO:SocraticGenProductSeeker:🤖 All agents initialized successfully
+# INFO:SocraticGenProductSeeker:🤖 Advanced Agentic Product Search System initialized
+# INFO:SocraticGenProductSeeker:📁 Database path: D:/Vector/ProductSeeker_data
+# INFO:SocraticGenProductSeeker:📊 Collection: ecommerce_test
+# INFO:SocraticGenProductSeeker:🧠 Model: clip-ViT-B-32
+# INFO:SocraticGenProductSeeker:🚀 Starting text search: 'laptop'
+# INFO:SocraticGenProductSeeker:✅ Search completed in 0.00s
+# INFO:SocraticGenProductSeeker:🚀 Starting text search: 'phone'
+# INFO:SocraticGenProductSeeker:✅ Search completed in 0.00s
+# INFO:SocraticGenProductSeeker:🚀 Starting text search: 'headphones'
+# INFO:SocraticGenProductSeeker:✅ Search completed in 0.00s
+# INFO:SocraticGenProductSeeker:🚀 Starting text search: 'mouse'
+# INFO:SocraticGenProductSeeker:✅ Search completed in 0.00s
+# INFO:SocraticGenProductSeeker:🚀 Starting text search: 'keyboard'
+# INFO:SocraticGenProductSeeker:✅ Search completed in 0.00s
+# INFO:SocraticGenProductSeeker:🔌 Connecting to database at: D:/Vector/ProductSeeker_data
+# WARNING:SocraticGenProductSeeker:Voice initialization failed: No Default Input Device Available
+# INFO:SocraticGenProductSeeker:🤖 All agents initialized successfully
+# INFO:SocraticGenProductSeeker:🤖 Advanced Agentic Product Search System initialized
+# INFO:SocraticGenProductSeeker:📁 Database path: D:/Vector/ProductSeeker_data
+# INFO:SocraticGenProductSeeker:📊 Collection: ecommerce_test
+# INFO:SocraticGenProductSeeker:🧠 Model: clip-ViT-B-32
+# INFO:SocraticGenProductSeeker:🚀 Starting text search: 'test'
+# INFO:SocraticGenProductSeeker:✅ Search completed in 0.00s
+#
+#
+# Ran 32 tests in 0.988s
+#
+# OK
