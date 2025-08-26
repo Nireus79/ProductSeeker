@@ -227,8 +227,8 @@ class SystemConfig:
     tts_voice: str = "default"
     # Database configuration
     database_path: str = "D:/Vector/ProductSeeker_data"
-    collection_name: str = "products"
-    model_name: str = "all-MiniLM-L6-v2"
+    collection_name: str = "ecommerce_test"
+    model_name: str = "clip-ViT-B-32"
 
 
 @dataclass
