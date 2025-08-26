@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed7bbc7b-6aa8-485b-bbca-f48586178bf3" name="Changes" comment="Socratic">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="ed7bbc7b-6aa8-485b-bbca-f48586178bf3" name="Changes" comment="Socratic SystemConfig" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -537,7 +535,15 @@
       <option name="project" value="LOCAL" />
       <updated>1756154111376</updated>
     </task>
-    <option name="localTasksCounter" value="40" />
+    <task id="LOCAL-00040" summary="Socratic SystemConfig">
+      <option name="closed" value="true" />
+      <created>1756191233045</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1756191233045</updated>
+    </task>
+    <option name="localTasksCounter" value="41" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -551,6 +557,7 @@
     <MESSAGE value="SocraticGen" />
     <MESSAGE value="Initial Launcher." />
     <MESSAGE value="Socratic" />
-    <option name="LAST_COMMIT_MESSAGE" value="Socratic" />
+    <MESSAGE value="Socratic SystemConfig" />
+    <option name="LAST_COMMIT_MESSAGE" value="Socratic SystemConfig" />
   </component>
 </project>

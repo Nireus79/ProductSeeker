@@ -1,0 +1,527 @@
+# SocraticGenProductSeeker.py Documentation
+
+## Overview
+
+SocraticGenProductSeeker.py is an advanced agentic product search system that provides multi-modal search capabilities with intelligent workflow management. It's an evolution of the LangGraphProductSearchSystem with enhanced features including voice input, image search, natural language processing, and personalized recommendations.
+
+## Table of Contents
+
+- [Features](#features)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [API Reference](#api-reference)
+- [Agent System](#agent-system)
+- [GUI Interface](#gui-interface)
+- [CLI Interface](#cli-interface)
+- [Troubleshooting](#troubleshooting)
+
+## Features
+
+### Multi-Modal Search
+- **Text Search**: Traditional keyword-based product search
+- **Voice Search**: Speech-to-text input processing
+- **Image Search**: Visual product matching using computer vision
+- **Hybrid Search**: Combination of multiple input types
+
+### Intelligent Workflow
+- **Agentic Architecture**: Specialized agents for different tasks
+- **Intent Analysis**: Automatic detection of user search intent
+- **Personalization**: Learning user preferences over time
+- **Smart Recommendations**: Context-aware product suggestions
+
+### Advanced Capabilities
+- **Explanations**: Detailed process explanations for transparency
+- **Performance Metrics**: Real-time system performance tracking
+- **Error Handling**: Robust error management and recovery
+- **Caching**: Intelligent result caching for improved performance
+
+## Architecture
+
+### System Components
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   User Input    │───▶│  Agent System   │───▶│  Vector DB      │
+│ (Text/Voice/Img)│    │   Workflow      │    │   Products      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                              │
+                              ▼
+                    ┌─────────────────┐
+                    │   Response      │
+                    │  Formatting     │
+                    └─────────────────┘
+```
+
+### Agent Workflow
+
+1. **Intent Analysis Agent** - Analyzes user intent and extracts entities
+2. **Voice Processing Agent** - Handles audio input and speech recognition
+3. **Image Processing Agent** - Processes visual input and feature extraction
+4. **Search Execution Agent** - Executes database queries and retrieves results
+5. **Recommendation Agent** - Generates contextual suggestions
+6. **Response Formatting Agent** - Formats final responses with explanations
+
+## Installation
+
+### Prerequisites
+
+```bash
+# Core dependencies
+pip install tkinter          # GUI interface
+pip install asyncio          # Async operations
+pip install pathlib          # Path handling
+pip install logging          # Logging system
+
+# Audio processing (optional)
+pip install speechrecognition
+pip install pyttsx3
+pip install pyaudio
+pip install wave
+
+# Image processing (optional)
+pip install Pillow
+pip install numpy
+pip install opencv-python
+
+# LangGraph (optional - falls back to simplified workflow)
+pip install langgraph
+pip install langchain-core
+
+# Database modules (required)
+# Ensure Vector.py and Integrater.py are in the Python path
+```
+
+### Database Setup
+
+The system requires access to the Vector database created by the ProductSeeker launcher:
+
+1. Ensure the Vector module is accessible at `D:/Vector/`
+2. Verify the database exists at `D:/Vector/ProductSeeker_data`
+3. Confirm the collection name matches your setup (default: "products")
+
+## Configuration
+
+### SystemConfig Class
+
+```python
+@dataclass
+class SystemConfig:
+    # Search parameters
+    max_results: int = 20
+    min_similarity_threshold: float = 0.5
+    max_refinements: int = 3
+    search_timeout: int = 30
+
+    # Feature toggles
+    enable_caching: bool = True
+    enable_parallel_search: bool = True
+    voice_enabled: bool = AUDIO_AVAILABLE
+    image_enabled: bool = IMAGE_AVAILABLE
+    learning_enabled: bool = True
+    explanation_enabled: bool = True
+    proactive_suggestions: bool = True
+
+    # Voice settings
+    voice_language: str = "en-US"
+    tts_rate: int = 200
+    tts_voice: str = "default"
+
+    # Database configuration
+    database_path: str = "D:/Vector/ProductSeeker_data"
+    collection_name: str = "products"
+    model_name: str = "all-MiniLM-L6-v2"
+```
+
+### User Profile
+
+The system maintains user profiles for personalization:
+
+```python
+@dataclass
+class UserProfile:
+    user_id: str = "default"
+    preferences: Dict[str, float] = field(default_factory=dict)
+    search_history: List[Dict] = field(default_factory=list)
+    interaction_patterns: Dict[str, int] = field(default_factory=dict)
+    preferred_brands: List[str] = field(default_factory=list)
+    price_range: Dict[str, float] = field(default_factory=dict)
+    categories_of_interest: List[str] = field(default_factory=list)
+    last_updated: datetime = field(default_factory=datetime.now)
+```
+
+## Usage
+
+### Basic Usage
+
+```python
+from SocraticGenProductSeeker import AgenticProductSearchSystem
+
+# Initialize the system
+search_system = AgenticProductSearchSystem()
+
+# Text search
+result = search_system.search(
+    query="gaming laptop under $1000",
+    search_type="text"
+)
+
+# Voice search
+result = search_system.search_by_voice(duration=5)
+
+# Image search
+result = search_system.search_by_image("/path/to/product.jpg")
+```
+
+### Advanced Usage
+
+```python
+# Custom configuration
+config = SystemConfig(
+    max_results=50,
+    voice_enabled=True,
+    learning_enabled=True
+)
+
+search_system = AgenticProductSearchSystem(
+    db_path="custom/path/to/database",
+    collection_name="my_products",
+    config=config
+)
+
+# Search with user context
+result = search_system.search(
+    query="wireless headphones",
+    search_type="text",
+    user_id="user123"
+)
+```
+
+## API Reference
+
+### AgenticProductSearchSystem
+
+#### Constructor
+
+```python
+AgenticProductSearchSystem(
+    db_path: str = None,
+    collection_name: str = None,
+    model_name: str = None,
+    config: Optional[SystemConfig] = None
+)
+```
+
+#### Methods
+
+##### search()
+
+```python
+search(
+    query: str = None,
+    search_type: str = "text",
+    image_path: str = None,
+    audio_data: bytes = None,
+    user_id: str = None,
+    **kwargs
+) -> Dict[str, Any]
+```
+
+**Parameters:**
+- `query`: Text query string
+- `search_type`: One of "text", "voice", "image", "hybrid"
+- `image_path`: Path to image file for visual search
+- `audio_data`: Audio bytes for voice search
+- `user_id`: User identifier for personalization
+
+**Returns:**
+```python
+{
+    "success": bool,
+    "results": List[Dict],
+    "response": str,
+    "explanations": List[str],
+    "suggestions": List[str],
+    "user_intent": Dict,
+    "search_type": str,
+    "response_time": float,
+    "session_id": str,
+    "timestamp": str
+}
+```
+
+##### search_by_voice()
+
+```python
+search_by_voice(duration: int = 5) -> Dict[str, Any]
+```
+
+Records audio input and performs voice search.
+
+##### search_by_image()
+
+```python
+search_by_image(image_path: str) -> Dict[str, Any]
+```
+
+Performs visual search using image input.
+
+##### get_system_status()
+
+```python
+get_system_status() -> Dict[str, Any]
+```
+
+Returns comprehensive system status information.
+
+##### get_database_info()
+
+```python
+get_database_info() -> Dict[str, Any]
+```
+
+Returns database statistics and information.
+
+## Agent System
+
+### Base Agent
+
+All agents inherit from `BaseAgent` which provides:
+- Performance tracking
+- Learning capabilities
+- Memory management
+- Error handling
+
+### Specialized Agents
+
+#### VoiceProcessingAgent
+- **Purpose**: Process voice input and convert to text
+- **Features**: Speech recognition, ambient noise adjustment, TTS output
+- **Dependencies**: speechrecognition, pyttsx3, pyaudio
+
+#### ImageProcessingAgent
+- **Purpose**: Analyze images and extract searchable features
+- **Features**: Image feature extraction, description generation
+- **Dependencies**: PIL, OpenCV, numpy
+
+#### IntentAnalysisAgent
+- **Purpose**: Understand user intent and extract entities
+- **Features**: Intent classification, entity extraction, user profile updates
+- **Patterns**: browse, compare, buy, research, budget, premium
+
+#### SearchExecutionAgent
+- **Purpose**: Execute database queries and retrieve products
+- **Features**: Text/image search, result personalization, performance optimization
+- **Integration**: Direct Vector database integration
+
+#### RecommendationAgent
+- **Purpose**: Generate contextual suggestions and recommendations
+- **Features**: Intent-based suggestions, personalized recommendations
+
+#### ResponseFormattingAgent
+- **Purpose**: Format responses with explanations and metadata
+- **Features**: Rich text formatting, explanation generation, suggestion inclusion
+
+## GUI Interface
+
+### Features
+- **Text Search**: Direct query input with search button
+- **Voice Search**: Microphone integration for voice input
+- **Image Search**: File dialog for image selection
+- **Real-time Status**: System status and performance display
+- **Results Display**: Formatted results with scrolling
+
+### Usage
+
+```python
+from SocraticGenProductSeeker import ProductSearchGUI
+
+# Launch GUI
+gui = ProductSearchGUI()
+gui.run()
+```
+
+### Controls
+- **🔍 Search**: Execute text search
+- **🎤 Voice Search**: Record and search voice input
+- **📸 Image Search**: Select and search by image
+- **🗑️ Clear**: Clear all results
+
+## CLI Interface
+
+### Commands
+
+- `search <query>` - Perform text search
+- `voice` - Start voice search
+- `image <path>` - Search by image
+- `status` - Show system status
+- `stats` - Display performance statistics
+- `help` - Show command help
+- `quit/exit` - Exit application
+
+### Usage
+
+```python
+from SocraticGenProductSeeker import ProductSearchCLI
+
+# Launch CLI
+cli = ProductSearchCLI()
+cli.run()
+```
+
+### Example Session
+
+```
+🔍 Enter command: search gaming laptop
+🔍 Searching for: gaming laptop
+📝 Found 5 products for 'gaming laptop'
+...
+
+🔍 Enter command: voice
+🎤 Starting voice search...
+...
+
+🔍 Enter command: image /path/to/laptop.jpg
+📸 Analyzing image: laptop.jpg
+...
+```
+
+## Performance Features
+
+### Caching
+- **Result Caching**: Automatic caching of search results
+- **TTL Support**: Time-to-live for cache entries
+- **Smart Invalidation**: Intelligent cache invalidation
+
+### Metrics Tracking
+- **Response Times**: Track average and per-query response times
+- **Success Rates**: Monitor search success/failure rates
+- **User Satisfaction**: Track user interaction patterns
+
+### Optimization
+- **Parallel Processing**: Concurrent agent execution where possible
+- **Resource Management**: Efficient memory and CPU usage
+- **Error Recovery**: Graceful degradation on component failures
+
+## Error Handling
+
+### Graceful Degradation
+- **Missing Dependencies**: Falls back to available features
+- **Database Issues**: Provides mock data when database unavailable
+- **Agent Failures**: Continues workflow with remaining agents
+
+### Error Types
+- **Import Errors**: Missing optional dependencies
+- **Database Errors**: Connection or query failures
+- **Audio/Video Errors**: Hardware or driver issues
+- **Network Errors**: Timeout or connectivity issues
+
+## Troubleshooting
+
+### Common Issues
+
+#### "Database modules not found"
+**Cause**: Vector.py or Integrater.py not in Python path
+**Solution**:
+```python
+# Add to Python path
+import sys
+sys.path.append("/path/to/Vector")
+```
+
+#### "Voice processing not available"
+**Cause**: Missing audio dependencies or hardware
+**Solution**:
+```bash
+pip install speechrecognition pyttsx3 pyaudio
+```
+
+#### "Number of requested results 0, cannot be negative, or zero"
+**Cause**: Empty database or configuration mismatch
+**Solution**: Verify database has products and check collection name
+
+#### "Image processing not available"
+**Cause**: Missing image processing libraries
+**Solution**:
+```bash
+pip install Pillow numpy opencv-python
+```
+
+### Debug Mode
+
+Enable detailed logging:
+
+```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
+```
+
+### System Status Check
+
+```python
+search_system = AgenticProductSearchSystem()
+status = search_system.get_system_status()
+print(status)
+```
+
+## Best Practices
+
+### Performance
+1. **Batch Queries**: Group similar searches when possible
+2. **Cache Management**: Use appropriate cache TTL settings
+3. **Resource Limits**: Set reasonable timeout values
+4. **Memory Management**: Clear results when not needed
+
+### User Experience
+1. **Progressive Enhancement**: Graceful feature degradation
+2. **Clear Feedback**: Provide explanations and suggestions
+3. **Error Communication**: User-friendly error messages
+4. **Response Speed**: Optimize for quick responses
+
+### Maintenance
+1. **Regular Updates**: Keep dependencies updated
+2. **Database Maintenance**: Periodic database optimization
+3. **Log Monitoring**: Regular log review for issues
+4. **Performance Monitoring**: Track system metrics
+
+## Integration Examples
+
+### Web Application Integration
+
+```python
+from flask import Flask, request, jsonify
+from SocraticGenProductSeeker import AgenticProductSearchSystem
+
+app = Flask(__name__)
+search_system = AgenticProductSearchSystem()
+
+@app.route('/search', methods=['POST'])
+def api_search():
+    data = request.json
+    result = search_system.search(
+        query=data.get('query'),
+        search_type=data.get('type', 'text'),
+        user_id=data.get('user_id')
+    )
+    return jsonify(result)
+```
+
+### Async Integration
+
+```python
+import asyncio
+
+async def async_search_example():
+    search_system = AgenticProductSearchSystem()
+
+    # Multiple concurrent searches
+    tasks = [
+        search_system.search_async(query="laptop"),
+        search_system.search_async(query="headphones"),
+        search_system.search_async(query="mouse")
+    ]
+
+    results = await asyncio.gather(*tasks)
+    return results
+```
