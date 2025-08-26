@@ -817,3 +817,135 @@ def run_tests(verbose=False, test_type="all", quick=False):
     print(
         f"Success rate: {((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100):.1f}%")
     print(f"Duration: {end_time - start_time:.2f}s")
+    print(f"Duration: {end_time - start_time:.2f}s")
+
+    # Print detailed failure information if verbose
+    if verbose and (result.failures or result.errors):
+        print("\n💥 Detailed Failure Information")
+        print("-" * 40)
+
+        for test, traceback in result.failures:
+            print(f"\n❌ FAILURE: {test}")
+            print(traceback)
+
+        for test, traceback in result.errors:
+            print(f"\n💀 ERROR: {test}")
+            print(traceback)
+
+    # Return success status
+    success = len(result.failures) == 0 and len(result.errors) == 0
+
+    if success:
+        print("\n✅ All tests passed!")
+    else:
+        print("\n❌ Some tests failed!")
+
+    return success
+
+
+def print_help():
+    """Print help information"""
+    print("""
+SocraticGenProductSeeker Test Suite
+==================================
+
+Usage:
+    python TestSocraticGenProductSeeker.py [options]
+
+Options:
+    --help, -h          Show this help message
+    --verbose, -v       Run tests with verbose output
+    --quick, -q         Run quick tests only (skip performance tests)
+    --component TYPE    Run tests for specific component
+
+Component Types:
+    all         Run all tests (default)
+    config      Test configuration classes
+    agents      Test individual agents
+    search      Test main search system
+    cli         Test CLI interface
+    error       Test error handling
+    performance Test performance aspects
+
+Examples:
+    python TestSocraticGenProductSeeker.py
+    python TestSocraticGenProductSeeker.py --verbose
+    python TestSocraticGenProductSeeker.py --quick
+    python TestSocraticGenProductSeeker.py --component agents
+    python TestSocraticGenProductSeeker.py --component search --verbose
+    """)
+
+
+def main():
+    """Main function to run tests with command line arguments"""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Test suite for SocraticGenProductSeeker",
+        add_help=False
+    )
+
+    parser.add_argument(
+        '--help', '-h',
+        action='store_true',
+        help='Show help message'
+    )
+
+    parser.add_argument(
+        '--verbose', '-v',
+        action='store_true',
+        help='Run with verbose output'
+    )
+
+    parser.add_argument(
+        '--quick', '-q',
+        action='store_true',
+        help='Run quick tests only'
+    )
+
+    parser.add_argument(
+        '--component', '-c',
+        choices=['all', 'config', 'agents', 'search', 'cli', 'error', 'performance'],
+        default='all',
+        help='Component to test'
+    )
+
+    # Parse arguments
+    args = parser.parse_args()
+
+    # Show help if requested
+    if args.help:
+        print_help()
+        return
+
+    # Check if module is available before proceeding
+    if not MODULE_AVAILABLE:
+        print("❌ SocraticGenProductSeeker module not found!")
+        print("   Please ensure the module is in the same directory or Python path.")
+        sys.exit(1)
+
+    # Run tests
+    try:
+        success = run_tests(
+            verbose=args.verbose,
+            test_type=args.component,
+            quick=args.quick
+        )
+
+        # Exit with appropriate code
+        sys.exit(0 if success else 1)
+
+    except KeyboardInterrupt:
+        print("\n\n⚠️  Tests interrupted by user")
+        sys.exit(130)
+
+    except Exception as e:
+        print(f"\n💥 Unexpected error running tests: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
