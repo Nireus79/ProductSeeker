@@ -203,8 +203,8 @@ class TestLangGraphProductSearcher(unittest.TestCase):
         result = {
             'metadata': {
                 'title': 'Test Product',
-                'price': '$199.99',
-                'category': 'Electronics'
+                'price': '19.99',
+                'category': 'Childrens'
             },
             'similarity': 0.85
         }
@@ -217,9 +217,9 @@ class TestLangGraphProductSearcher(unittest.TestCase):
     def test_refinement_strategy(self):
         """Test query refinement strategies"""
         test_cases = [
-            ("gaming laptop computer", 0, "no_results", "gaming laptop"),  # Remove last word
-            ("wireless bluetooth headphones", 0, "poor", "wireless bluetooth"),  # Remove last word
-            ("smartphone", 1, "few_results", "electronics"),  # Category fallback
+            ("Master of disaster", 0, "no_results", "disaster"),  # Remove last word
+            ("How not to Be Miserable", 0, "poor", "not"),  # Remove not
+            ("book", 1, "few_results", "Fiction"),  # Category fallback
             ("unknown product", 1, "poor", "unknown"),  # First word fallback
         ]
 
@@ -697,7 +697,7 @@ if __name__ == "__main__":
 
 
 # C:\Users\themi\AppData\Local\Programs\Python\Python313\python.exe "C:/Program Files/JetBrains/PyCharm Community Edition 2024.1.2/plugins/python-ce/helpers/pycharm/_jb_unittest_runner.py" --path C:\Users\themi\PycharmProjects\ProductSeeker\TestLangGraphProductSearchSystem.py
-# Testing started at 2:27 PM ...
+# Testing started at 2:38 PM ...
 # Launching unittests with arguments python -m unittest C:\Users\themi\PycharmProjects\ProductSeeker\TestLangGraphProductSearchSystem.py in C:\Users\themi\PycharmProjects\ProductSeeker
 #
 # INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
@@ -764,6 +764,21 @@ if __name__ == "__main__":
 # INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
 # INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
 # INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
+#
+#
+# 199.99 != 19.99
+#
+# Expected :19.99
+# Actual   :199.99
+# <Click to see difference>
+#
+# Traceback (most recent call last):
+#   File "C:\Users\themi\PycharmProjects\ProductSeeker\TestLangGraphProductSearchSystem.py", line 214, in test_enhance_result_metadata
+#     self.assertEqual(result['metadata']['price_numeric'], 199.99)
+#     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# AssertionError: 19.99 != 199.99
+#
+# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
 # INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
 # INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
 # INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
@@ -773,7 +788,7 @@ if __name__ == "__main__":
 #   File "C:\Users\themi\PycharmProjects\ProductSeeker\TestLangGraphProductSearchSystem.py", line 228, in test_refinement_strategy
 #     self.assertIn(expected_contains.split()[0], result.split())
 #     ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# AssertionError: 'electronics' not found in ['phone']
+# AssertionError: 'disaster' not found in ['Master']
 #
 # INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
 # INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
@@ -781,11 +796,8 @@ if __name__ == "__main__":
 # INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
 # INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
 # INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
-# INFO:LangGraphProductSearchSystem:🚀 Optimized LangGraph ProductSearcher initialized
 #
 #
-# Ran 22 tests in 1.946s
+# Ran 22 tests in 1.922s
 #
-# FAILED (failures=4)
-#
-# Process finished with exit code 1
+# FAILED (failures=5)
